@@ -20,7 +20,7 @@ const getLocalDate = offset => {
 }
 
 router.get('/', (ctx, next) => {
-  ctx.body = '<h1>You have the wrong number :(</h1>'
+  ctx.body = '<h1>You have the wrong number lul :(</h1>'
 })
 
 router.get('/keyboard', (ctx, next) => {
