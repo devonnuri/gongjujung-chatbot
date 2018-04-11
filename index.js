@@ -36,20 +36,22 @@ router.post('/message', async (ctx, next) => {
   let param = ctx.request.body
   let message = param.content
 
-  let data = {}
+  let data = {
+    'message': {}
+  }
 
   if (message.includes('급식')) {
     if (message.includes('내일')) {
       await Parser.getMeal(getLocalDate(1)).then((body) => {
-        data['message'] = body
+        data.message['text'] = body
       })
     } else if (message.includes('어제')) {
       await Parser.getMeal(getLocalDate(-1)).then((body) => {
-        data['message'] = body
+        data.message['text'] = body
       })
     } else {
       await Parser.getMeal(getLocalDate()).then((body) => {
-        data['message'] = body
+        data.message['text'] = body
       })
     }
   }
