@@ -7,7 +7,7 @@ const Parser = require('./Parser')
 const app = new Koa()
 const router = new Router()
 
-const PORT = process.env.PORT || 3000
+const PORT = 80
 const UTC_OFFSET = +9
 
 app.use(bodyParser())
