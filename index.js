@@ -29,6 +29,10 @@ const loadMeal = () => {
   }
 }
 
+const randomArray = array => {
+  return array[Math.floor(Math.random * array.length)]
+}
+
 router.get('/', (ctx, next) => {
   ctx.body = '<h1>You have the wrong number lul :(</h1>'
 })
@@ -47,7 +51,11 @@ router.post('/message', async (ctx, next) => {
   let message = param.content
 
   let data = {
-    'message': {}
+    message: {},
+    keyboard: {
+      type: 'buttons',
+      buttons: []
+    }
   }
 
   if (message.includes('급식')) {
@@ -59,6 +67,9 @@ router.post('/message', async (ctx, next) => {
       // If Nothing, return Just Today
       data.message['text'] = latestMeal.get(0)
     }
+    data.keyboard.buttons = ['오늘 급식 알려줘', '내일 급식 알려줘', '어제 급식 알려줘']
+  } else {
+    data.message['text'] = '뭐라는지 모르겠어 ㅠㅠ\n기능 제안이나 버그 제보는 항상 받고 있으니 언제나 알려달라고!'
   }
 
   ctx.body = data
