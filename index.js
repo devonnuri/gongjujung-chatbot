@@ -51,8 +51,7 @@ router.get('/', (ctx, next) => {
 
 router.get('/keyboard', (ctx, next) => {
   let data = {
-    'type': 'buttons',
-    'buttons': ['오늘 급식'],
+    'type': 'text',
   }
 
   ctx.body = data
@@ -65,8 +64,7 @@ router.post('/message', async (ctx, next) => {
   let data = {
     message: {},
     keyboard: {
-      type: 'buttons',
-      buttons: []
+      type: 'text',
     }
   }
 
@@ -85,7 +83,7 @@ router.post('/message', async (ctx, next) => {
       data.message['text'] = latestMeal.get(0)
     }
 
-    data.keyboard.buttons = ['오늘 급식 알려줘', '내일 급식 알려줘', '어제 급식 알려줘']
+    // data.keyboard.buttons = ['오늘 급식 알려줘', '내일 급식 알려줘', '어제 급식 알려줘']
   } else {
     data.message['text'] = '뭐라는지 모르겠어 ㅠㅠ\n기능 제안이나 버그 제보는 항상 받고 있으니 언제나 알려달라고!'
   }
@@ -98,7 +96,6 @@ app.listen(PORT, () => {
   console.log(`I am READY!!`)
 
   // Prevent Sleeping & Fast Loading
-
   loadMeal()
   setInterval(() => loadMeal(), 300000)
 })
