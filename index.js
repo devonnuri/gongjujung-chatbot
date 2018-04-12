@@ -10,6 +10,8 @@ const router = new Router()
 const PORT = process.env.PORT || 8080
 const UTC_OFFSET = +9
 
+let latestMeal = new Map()
+
 app.use(bodyParser())
 
 const getLocalDate = offset => {
@@ -17,6 +19,14 @@ const getLocalDate = offset => {
   let utc = date.getTime() + date.getTimezoneOffset() * 60000
   offset = offset !== undefined ? 86400000 * offset : 0
   return new Date(utc + UTC_OFFSET * 3600000 + offset)
+}
+
+const loadMeal = () => {
+  for (let i = -3; i <= 3; i++) {
+    Parser.getMeal(getLocalDate(i)).then(body => {
+      latestMeal.set(i, body)
+    })
+  }
 }
 
 router.get('/', (ctx, next) => {
@@ -42,17 +52,12 @@ router.post('/message', async (ctx, next) => {
 
   if (message.includes('급식')) {
     if (message.includes('내일')) {
-      await Parser.getMeal(getLocalDate(1)).then((body) => {
-        data.message['text'] = body
-      })
+      data.message['text'] = latestMeal.get(1)
     } else if (message.includes('어제')) {
-      await Parser.getMeal(getLocalDate(-1)).then((body) => {
-        data.message['text'] = body
-      })
+      data.message['text'] = latestMeal.get(-1)
     } else {
-      await Parser.getMeal(getLocalDate()).then((body) => {
-        data.message['text'] = body
-      })
+      // If Nothing, return Just Today
+      data.message['text'] = latestMeal.get(0)
     }
   }
 
@@ -62,6 +67,11 @@ router.post('/message', async (ctx, next) => {
 app.listen(PORT, () => {
   console.log(`listening to port ${PORT}`)
   console.log(`I am READY!!`)
+
+  // Prevent Sleeping & Fast Loading
+
+  loadMeal()
+  setInterval(() => loadMeal(), 300000)
 })
 
 app
