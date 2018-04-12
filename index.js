@@ -75,6 +75,7 @@ router.post('/message', async (ctx, next) => {
         let result = getLocalDate(KOREAN_DATE[key]).toLocaleDateString() + '의 급식이야!\n\n'
         result += latestMeal.get(KOREAN_DATE[key])
         data.message['text'] = result
+        break
       }
     }
 
