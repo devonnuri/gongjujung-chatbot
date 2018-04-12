@@ -16,8 +16,8 @@ const KOREAN_DATE = {
   '그제': -2,
   '어제': -1,
   '오늘': 0,
-  '내일': 1,
   '모레': 2,
+  '내일': 1,
   '글피': 3,
   '그글피': 4,
 }
@@ -39,10 +39,6 @@ const loadMeal = () => {
       latestMeal.set(i, body)
     })
   }
-}
-
-const randomArray = array => {
-  return array[Math.floor(Math.random * array.length)]
 }
 
 router.get('/', (ctx, next) => {
@@ -80,8 +76,6 @@ router.post('/message', async (ctx, next) => {
     if (data.message['text'] === undefined) {
       data.message['text'] = latestMeal.get(0)
     }
-
-    // data.keyboard.buttons = ['오늘 급식 알려줘', '내일 급식 알려줘', '어제 급식 알려줘']
   } else {
     data.message['text'] = '뭐라는지 모르겠어 ㅠㅠ\n기능 제안이나 버그 제보는 항상 받고 있으니 언제나 알려달라고!'
   }
