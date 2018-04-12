@@ -63,9 +63,6 @@ router.post('/message', async (ctx, next) => {
 
   let data = {
     message: {},
-    keyboard: {
-      type: 'text',
-    }
   }
 
   if (message.includes('급식')) {
