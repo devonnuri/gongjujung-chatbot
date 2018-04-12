@@ -23,7 +23,12 @@ module.exports.getMeal = async (date, mealType = this.MealType.LUNCH) => {
     }
   }).then(html => {
     const $ = cheerio.load(html, { decodeEntities: false })
-    return $('tbody tr:nth-child(2) td').eq(date.getDay()).html().replace(/<br\\?>/gi, '\n').trim()
+    return $('tbody tr:nth-child(2) td')
+      .eq(date.getDay()).html()
+      .replace(/<br\/?>/gi, '\n')
+      .replace(/<[a-zA-Z]+\/?>/gi, '') // Remove Tag Except br Tag
+      .replace(/([0-9]+\.)+/gi, '') // Remove Allergy Info
+      .trim()
     // TODO: 없으면 없다고 말해줘야함
   })
 }
