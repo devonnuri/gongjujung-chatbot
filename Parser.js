@@ -72,8 +72,6 @@ const getTimeTable = async (grade, room) => {
         }
 
         weeklySchedule[day].shift()
-        weeklySchedule[day].pop()
-        weeklySchedule[day].pop()
       }
 
       weeklySchedule.pop()
@@ -88,7 +86,9 @@ module.exports.getTodayTimeTable = async (grade, room, day) => {
 
   if (day.getDay() >= 1 && day.getDay() <= 5) {
     let result = ''
-    for (let [index, subject] of schedule[day.getDay()].entries()) {
+    for (let [index, subject] of schedule[day.getDay() - 1].entries()) {
+      if (!subject) continue
+
       result += `${index + 1}교시: ${subject.subject}(${subject.teacher})\n`
     }
     return result

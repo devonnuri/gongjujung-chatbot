@@ -41,6 +41,15 @@ const loadMeal = () => {
   }
 }
 
+const getDateWithOffset = message => {
+  for (let key in KOREAN_DATE) {
+    if (message.includes(key)) {
+      return getLocalDate(KOREAN_DATE[key])
+    }
+  }
+  return getLocalDate(0)
+}
+
 router.get('/', (ctx, next) => {
   ctx.body = '<h1>You have the wrong number lul :(</h1>'
 })
@@ -62,40 +71,19 @@ router.post('/message', async (ctx, next) => {
   }
 
   if (message.includes('급식')) {
-    // key: Korean, value: Offset
-    for (let key in KOREAN_DATE) {
-      if (message.includes(key)) {
-        let result = getLocalDate(KOREAN_DATE[key]).toLocaleDateString() + '의 급식이야!\n\n'
-        result += latestMeal.get(KOREAN_DATE[key])
-        data.message['text'] = result
-        break
-      }
-    }
+    let date = getDateWithOffset(message)
 
-    // 시간이 지정되지 않았을 경우
-    if (data.message['text'] === undefined) {
-      data.message['text'] = getLocalDate().toLocaleDateString() + '의 급식이야!\n\n' + latestMeal.get(0)
-    }
+    let result = date.toLocaleDateString() + '의 급식이야!\n\n'
+    result += latestMeal.get(date)
+
+    data.message['text'] = result
   } else if (message.includes('시간표')) {
-    let result = ''
+    let date = getDateWithOffset(message)
 
-    for (let key in KOREAN_DATE) {
-      if (message.includes(key)) {
-        result += getLocalDate(KOREAN_DATE[key]).toLocaleDateString() + '의 시간표야!\n\n'
-        await Parser.getTodayTimeTable(2, 4, getLocalDate(KOREAN_DATE[key])).then(body => {
-          result += body
-        })
-        break
-      }
-    }
-
-    // 시간이 지정되지 않았을 경우
-    if (result === '') {
-      result += getLocalDate().toLocaleDateString() + '의 시간표야!\n\n'
-      await Parser.getTodayTimeTable(2, 4, getLocalDate()).then(body => {
-        result += body
-      })
-    }
+    let result = date.toLocaleDateString() + '의 시간표야!\n\n'
+    await Parser.getTodayTimeTable(2, 4, date).then(body => {
+      result += body
+    })
 
     data.message['text'] = result
   } else {
