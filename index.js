@@ -76,6 +76,10 @@ router.post('/message', async (ctx, next) => {
     if (data.message['text'] === undefined) {
       data.message['text'] = latestMeal.get(0)
     }
+  } else if (message.includes('시간표')) {
+    await Parser.getTimeTable().then(body => {
+      data.message['text'] = body
+    })
   } else {
     data.message['text'] = '뭐라는지 모르겠어 ㅠㅠ\n기능 제안이나 버그 제보는 항상 받고 있으니 언제나 알려달라고!'
   }
