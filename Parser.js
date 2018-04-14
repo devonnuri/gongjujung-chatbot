@@ -5,39 +5,12 @@ const getDate = now => {
   return now.getFullYear() + (now.getMonth() + 1).toString().padStart(2, '0') + now.getDate().toString().padStart(2, '0')
 }
 
-module.exports.MealType = {
-  BREAKFAST: 1,
-  LUNCH: 2,
-  DINNER: 3,
-}
-
-module.exports.getMeal = async (date, mealType = this.MealType.LUNCH) => {
-  return request({
-    method: 'GET',
-    url: 'http://stu.cne.go.kr/sts_sci_md01_001.do',
-    qs: {
-      schulCode: 'N100000281',
-      schulCrseScCode: '3',
-      schMmealScCode: mealType,
-      schYmd: getDate(date),
-    },
-  }).then(body => {
-    const $ = cheerio.load(body, { decodeEntities: false })
-    return $('tbody tr:nth-child(2) td')
-      .eq(date.getDay()).html()
-      .replace(/<br\/?>/gi, '\n')
-      .replace(/<[a-zA-Z]+\/?>/gi, '') // Remove Tag Except br Tag
-      .replace(/([0-9]+\.)+/gi, '') // Remove Allergy Info
-      .trim()
-    // TODO: 없으면 없다고 말해줘야함
-  })
-}
-
 const getTimeTable = async (grade, room) => {
   /*
    * Payload:
    * 1. Get temporary request url in /st page (look like _h123345)
    * 2. Using (1), Get JSON Response
+   * 3. Parse (2) into object
    */
 
   return request({
@@ -78,6 +51,58 @@ const getTimeTable = async (grade, room) => {
 
       return weeklySchedule
     })
+  })
+}
+
+module.exports.test = async () => {
+  return new Promise((resolve, reject) => {
+    process.stdout.write('Testing School Meal... ')
+    resolve()
+  }).then(() => request({
+    method: 'GET',
+    url: 'http://stu.cne.go.kr/sts_sci_md01_001.do',
+    resolveWithFullResponse: true,
+  }).then(response => {
+    if (response.statusCode === 200) {
+      process.stdout.write('Succeed.\n')
+    } else {
+      process.stdout.write('Failed. (Status Code "' + response.statusCode + '")\n')
+    }
+  }).catch(error => {
+    process.stdout.write('Failed. (' + error + ')\n')
+  })).then(() => {
+    process.stdout.write('Testing Comcigan(Getting Time Table)... ')
+  }).then(() => getTimeTable(1, 1)).then(() => {
+    process.stdout.write('Succeed.\n')
+  }).catch(error => {
+    process.stdout.write('Failed. (' + error + ')\n')
+  })
+}
+
+module.exports.MealType = {
+  BREAKFAST: 1,
+  LUNCH: 2,
+  DINNER: 3,
+}
+
+module.exports.getMeal = async (date, mealType = this.MealType.LUNCH) => {
+  return request({
+    method: 'GET',
+    url: 'http://stu.cne.go.kr/sts_sci_md01_001.do',
+    qs: {
+      schulCode: 'N100000281',
+      schulCrseScCode: '3',
+      schMmealScCode: mealType,
+      schYmd: getDate(date),
+    },
+  }).then(body => {
+    const $ = cheerio.load(body, { decodeEntities: false })
+    return $('tbody tr:nth-child(2) td')
+      .eq(date.getDay()).html()
+      .replace(/<br\/?>/gi, '\n')
+      .replace(/<[a-zA-Z]+\/?>/gi, '') // Remove Tag Except br Tag
+      .replace(/([0-9]+\.)+/gi, '') // Remove Allergy Info
+      .trim()
   })
 }
 

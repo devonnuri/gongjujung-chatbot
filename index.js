@@ -39,15 +39,25 @@ const loadMeal = () => {
       latestMeal.set(i, body)
     })
   }
+  console.log('Meal has preloaded.')
+}
+
+const getOffset = message => {
+  for (let key in KOREAN_DATE) {
+    if (message.includes(key)) {
+      return KOREAN_DATE[key]
+    }
+  }
+
+  return 0
 }
 
 const getDateWithOffset = message => {
-  for (let key in KOREAN_DATE) {
-    if (message.includes(key)) {
-      return getLocalDate(KOREAN_DATE[key])
-    }
-  }
-  return getLocalDate(0)
+  return getLocalDate(getOffset(message))
+}
+
+const toKoreanDate = date => {
+  return `${date.getFullYear()}년 ${date.getMonth()}월 ${date.getDate()}일`
 }
 
 router.get('/', (ctx, next) => {
@@ -72,11 +82,13 @@ router.post('/message', async (ctx, next) => {
 
   if (message.includes('급식')) {
     let date = getDateWithOffset(message)
+    let result = latestMeal.get(getOffset(message))
 
-    let result = date.toLocaleDateString() + '의 급식이야!\n\n'
-    result += latestMeal.get(date)
-
-    data.message['text'] = result
+    if (result) {
+      data.message['text'] = toKoreanDate(date) + '의 급식이야!\n\n' + result
+    } else {
+      data.message['text'] = '안타깝게도 ' + toKoreanDate(date) + '에는 급식이 없어 ㅠ'
+    }
   } else if (message.includes('시간표')) {
     let date = getDateWithOffset(message)
 
@@ -94,11 +106,14 @@ router.post('/message', async (ctx, next) => {
 })
 
 app.listen(PORT, () => {
-  console.log(`listening to port ${PORT}`)
+  console.log(`Listening to port ${PORT}`)
   console.log(`I am READY!!`)
 
+  Parser.test().then(() => {
+    loadMeal()
+  })
+
   // Prevent Sleeping & Fast Loading
-  loadMeal()
   setInterval(() => loadMeal(), 300000)
 })
 
