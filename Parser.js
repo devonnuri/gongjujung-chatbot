@@ -52,7 +52,14 @@ module.exports.getTimeTable = async () => {
       method: 'GET',
       url: `http://112.186.146.96:4080/${url}?sc=41837&nal=1&s=0`
     }).then(body => {
-      return body
+      body = body.split('\n')[0]
+      require('fs').writeFile('test.json', body, err => {
+        console.error(err)
+      })
+
+      let data = JSON.parse(body)
+      console.log(require('util').inspect(data))
+      return 'Constructing :('
     })
   })
 }
