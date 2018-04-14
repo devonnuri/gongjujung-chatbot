@@ -33,8 +33,7 @@ module.exports.getMeal = async (date, mealType = this.MealType.LUNCH) => {
   })
 }
 
-module.exports.getTimeTable = async () => {
-
+const getTimeTable = async (grade, room) => {
   /*
    * Payload:
    * 1. Get temporary request url in /st page (look like _h123345)
@@ -53,13 +52,47 @@ module.exports.getTimeTable = async () => {
       url: `http://112.186.146.96:4080/${url}?sc=41837&nal=1&s=0`
     }).then(body => {
       body = body.split('\n')[0]
-      require('fs').writeFile('test.json', body, err => {
-        console.error(err)
-      })
+      const data = JSON.parse(body)
+      const weeklySchedule = data.학급시간표[grade][room]
+      weeklySchedule.shift(1)
 
-      let data = JSON.parse(body)
-      console.log(require('util').inspect(data))
-      return 'Constructing :('
+      for (let day = 0; day < 5; day++) {
+        const schedule = weeklySchedule[day]
+        for (let period = 0, len = schedule.length; period < len; period += 1) {
+          const subject = schedule[period]
+          if (subject > 100) {
+            weeklySchedule[day][period] = {
+              subject: data['긴과목명'][subject % 100] || null,
+              subjectAlias: data['과목명'][subject % 100] || null,
+              teacher: data['성명'][Math.floor(subject / 100)] || null
+            }
+          } else {
+            weeklySchedule[day][period] = null
+          }
+        }
+
+        weeklySchedule[day].shift()
+        weeklySchedule[day].pop()
+        weeklySchedule[day].pop()
+      }
+
+      weeklySchedule.pop()
+
+      return weeklySchedule
     })
   })
+}
+
+module.exports.getTodayTimeTable = async (grade, room, day) => {
+  const schedule = await getTimeTable(grade, room)
+
+  if (day.getDay() >= 1 && day.getDay() <= 5) {
+    let result = ''
+    for (let [index, subject] of schedule[day.getDay()].entries()) {
+      result += `${index + 1}교시: ${subject.subject}(${subject.teacher})\n`
+    }
+    return result
+  } else {
+    return null
+  }
 }

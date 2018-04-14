@@ -72,14 +72,32 @@ router.post('/message', async (ctx, next) => {
       }
     }
 
-    // 급식이 지정되지 않았을 경우
+    // 시간이 지정되지 않았을 경우
     if (data.message['text'] === undefined) {
-      data.message['text'] = latestMeal.get(0)
+      data.message['text'] = getLocalDate().toLocaleDateString() + '의 급식이야!\n\n' + latestMeal.get(0)
     }
   } else if (message.includes('시간표')) {
-    await Parser.getTimeTable().then(body => {
-      data.message['text'] = body
-    })
+    let result = ''
+
+    for (let key in KOREAN_DATE) {
+      if (message.includes(key)) {
+        result += getLocalDate(KOREAN_DATE[key]).toLocaleDateString() + '의 시간표야!\n\n'
+        await Parser.getTodayTimeTable(2, 4, getLocalDate(KOREAN_DATE[key])).then(body => {
+          result += body
+        })
+        break
+      }
+    }
+
+    // 시간이 지정되지 않았을 경우
+    if (result === '') {
+      result += getLocalDate().toLocaleDateString() + '의 시간표야!\n\n'
+      await Parser.getTodayTimeTable(2, 4, getLocalDate()).then(body => {
+        result += body
+      })
+    }
+
+    data.message['text'] = result
   } else {
     data.message['text'] = '뭐라는지 모르겠어 ㅠㅠ\n기능 제안이나 버그 제보는 항상 받고 있으니 언제나 알려달라고!'
   }
