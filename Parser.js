@@ -1,10 +1,6 @@
 const cheerio = require('cheerio')
 const request = require('request-promise')
 
-const getDate = now => {
-  return now.getFullYear() + (now.getMonth() + 1).toString().padStart(2, '0') + now.getDate().toString().padStart(2, '0')
-}
-
 const getTimeTable = async (grade, room) => {
   /*
    * Payload:
@@ -18,7 +14,7 @@ const getTimeTable = async (grade, room) => {
     url: 'http://112.186.146.96:4080/st#',
   }).then(body => {
     // temprorary request url
-    let url = body.match(/window\.localStorage;.+var [A-z0-9ㄱ-ㅎ가-힣$_]+\s*=\s*'([\w_-]+)'/)[1]
+    let url = body.match(/window\.localStorage;.*var [A-z0-9ㄱ-ㅎ가-힣$_]+\s*=\s*'([\w_-]+)'/)[1]
 
     return request({
       method: 'GET',
@@ -93,12 +89,12 @@ module.exports.getMeal = async (date, mealType = this.MealType.LUNCH) => {
       schulCode: 'N100000281',
       schulCrseScCode: '3',
       schMmealScCode: mealType,
-      schYmd: getDate(date),
+      schYmd: date.format('YYYYMMDD'),
     },
   }).then(body => {
     const $ = cheerio.load(body, { decodeEntities: false })
     return $('tbody tr:nth-child(2) td')
-      .eq(date.getDay()).html()
+      .eq(date.day()).html()
       .replace(/<br\/?>/gi, '\n')
       .replace(/<[a-zA-Z]+\/?>/gi, '') // Remove Tag Except br Tag
       .replace(/([0-9]+\.)+/gi, '') // Remove Allergy Info
@@ -106,12 +102,13 @@ module.exports.getMeal = async (date, mealType = this.MealType.LUNCH) => {
   })
 }
 
-module.exports.getTodayTimeTable = async (grade, room, day) => {
+module.exports.getTodayTimeTable = async (grade, room, date) => {
   const schedule = await getTimeTable(grade, room)
+  let day = date.day()
 
-  if (day.getDay() >= 1 && day.getDay() <= 5) {
+  if (day >= 1 && day <= 5) {
     let result = ''
-    for (let [index, subject] of schedule[day.getDay() - 1].entries()) {
+    for (let [index, subject] of schedule[day - 1].entries()) {
       if (!subject) continue
 
       result += `${index + 1}교시: ${subject.subject}(${subject.teacher})\n`

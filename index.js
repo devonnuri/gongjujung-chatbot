@@ -3,12 +3,13 @@ const Router = require('koa-router')
 const bodyParser = require('koa-bodyparser')
 
 const Parser = require('./Parser')
+const moment = require('moment-timezone')
 
 const app = new Koa()
 const router = new Router()
 
 const PORT = process.env.PORT || 8080
-const UTC_OFFSET = +9
+const TIMEZONE = 'Asia/Seoul'
 
 const KOREAN_DATE = {
   '그끄제': -3,
@@ -22,24 +23,14 @@ const KOREAN_DATE = {
   '그글피': 4,
 }
 
-let latestMeal = new Map()
+let latestMeal = {}
 
 app.use(bodyParser())
 
-const getLocalDate = offset => {
-  let date = new Date()
-  let utc = date.getTime() + date.getTimezoneOffset() * 60000
-  offset = offset !== undefined ? 86400000 * offset : 0
-  return new Date(utc + UTC_OFFSET * 3600000 + offset)
-}
+moment.locale('ko')
 
-const loadMeal = () => {
-  for (let i = -4; i <= 4; i++) {
-    Parser.getMeal(getLocalDate(i)).then(body => {
-      latestMeal.set(i, body)
-    })
-  }
-  console.log('Meal has preloaded.')
+const getDateFromOffset = offset => {
+  return moment().add(offset, 'day').tz(TIMEZONE)
 }
 
 const getOffset = message => {
@@ -49,15 +40,43 @@ const getOffset = message => {
     }
   }
 
-  return 0
+  return null
 }
 
-const getDateWithOffset = message => {
-  return getLocalDate(getOffset(message))
+const getDateFromMessage = message => {
+  let offset = getOffset(message)
+  if (offset !== null) {
+    return getDateFromOffset(offset)
+  } else {
+    let match = message.match(/([1-2]?[0-9])월 ?[1-3]?[0-9]일/)
+
+    // When the match isn't null
+    if (match) {
+      let [month, day] = [match[1] - 1, match[2] - 1]
+      return moment({month, day}).tz(TIMEZONE)
+    } else { // if nothing has matched, return today's date
+      return moment().tz(TIMEZONE)
+    }
+  }
 }
 
-const toKoreanDate = date => {
-  return `${date.getFullYear()}년 ${date.getMonth()}월 ${date.getDate()}일`
+const loadMeal = () => {
+  for (let i = -4; i <= 4; i++) {
+    let date = getDateFromOffset(i)
+    Parser.getMeal(date).then(body => {
+      latestMeal[date] = body
+    })
+  }
+  console.log('Meal has preloaded.')
+}
+
+const getMeal = date => {
+  for (let key in latestMeal) {
+    if (date.isSame(key, 'day')) {
+      return latestMeal[key]
+    }
+  }
+  return null
 }
 
 router.get('/', (ctx, next) => {
@@ -81,20 +100,28 @@ router.post('/message', async (ctx, next) => {
   }
 
   if (message.includes('급식')) {
-    let date = getDateWithOffset(message)
-    let result = latestMeal.get(getOffset(message))
+    // TODO: 석식 추가해야지!
+
+    let date = getDateFromMessage(message)
+    let result = getMeal(date)
 
     if (result) {
-      data.message['text'] = toKoreanDate(date) + '의 급식이야!\n\n' + result
+      data.message['text'] = date.format('LL') + '의 급식이야!\n\n' + result
     } else {
-      data.message['text'] = '안타깝게도 ' + toKoreanDate(date) + '에는 급식이 없어 ㅠ'
+      data.message['text'] = '안타깝게도 ' + date.format('LL') + '에는 급식이 없어 ㅠ'
     }
   } else if (message.includes('시간표')) {
-    let date = getDateWithOffset(message)
+    let date = getDateFromMessage(message)
+    let match = message.match(/([1-3])학년 ?([1-9])반/)
+    let [grade, room] = [match[1] || 1, match[2] || 1]
 
-    let result = date.toLocaleDateString() + '의 시간표야!\n\n'
-    await Parser.getTodayTimeTable(2, 4, date).then(body => {
-      result += body
+    let result = `${grade}학년 ${room}반의 ${date.format('LL')}의 시간표야\n\n`
+    await Parser.getTodayTimeTable(grade, room, date).then(body => {
+      if (body) {
+        result += body
+      } else {
+        result += '안타깝게도 오늘 수업은 없어.. 오늘은 놀아보자구!'
+      }
     })
 
     data.message['text'] = result

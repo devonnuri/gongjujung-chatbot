@@ -12,6 +12,8 @@
     "koa": "^2.5.0",
     "koa-bodyparser": "^4.2.0",
     "koa-router": "^7.4.0",
+    "moment": "^2.22.1",
+    "moment-timezone": "^0.5.14",
     "request": "^2.85.0",
     "request-promise": "^4.2.2"
   },
