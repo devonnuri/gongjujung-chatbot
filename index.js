@@ -120,7 +120,12 @@ router.post('/message', async (ctx, next) => {
       if (body) {
         result += body
       } else {
-        result += '안타깝게도 오늘 수업은 없어.. 오늘은 놀아보자구!'
+        // Is it today?
+        if (date.isSame(moment(), 'day')) {
+          result += '안타깝게도 오늘 수업은 없어.. 오늘은 놀아보자구!'
+        } else {
+          result += date.format('LL') + '에는 수업이 없어!'
+        }
       }
     })
 
