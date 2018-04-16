@@ -48,7 +48,7 @@ const getDateFromMessage = message => {
   if (offset !== null) {
     return getDateFromOffset(offset)
   } else {
-    let match = message.match(/([1-2]?[0-9])월 ?[1-3]?[0-9]일/)
+    let match = message.match(/([1-2]?[0-9])월 ?([1-3]?[0-9])일/)
 
     // When the match isn't null
     if (match) {
@@ -70,7 +70,7 @@ const loadMeal = () => {
     }).then(() => Parser.getMeal(date, Parser.MealType.DINNER).then(body => {
       meal.push(body)
     }))
-    
+
     latestMeal[date] = meal
   }
   console.log('Meal has preloaded.')
