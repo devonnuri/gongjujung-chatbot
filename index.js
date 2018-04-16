@@ -113,9 +113,13 @@ router.post('/message', async (ctx, next) => {
   } else if (message.includes('시간표')) {
     let date = getDateFromMessage(message)
     let match = message.match(/([1-3])학년 ?([1-9])반/)
-    let [grade, room] = [match[1] || 1, match[2] || 1]
+    let [grade, room] = [1, 1]
 
-    let result = `${grade}학년 ${room}반의 ${date.format('LL')}의 시간표야\n\n`
+    if (match) {
+      [grade, room] = [match[1], match[2]]
+    }
+
+    let result = `${grade}학년 ${room}반의 ${date.format('LL')}의 시간표야!\n\n`
     await Parser.getTodayTimeTable(grade, room, date).then(body => {
       if (body) {
         result += body
