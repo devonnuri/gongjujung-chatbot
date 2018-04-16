@@ -52,7 +52,7 @@ const getDateFromMessage = message => {
 
     // When the match isn't null
     if (match) {
-      let [month, day] = [match[1] - 1, match[2] - 1]
+      let [month, day] = [match[1] - 1, match[2]]
       return moment({month, day}).tz(TIMEZONE)
     } else { // if nothing has matched, return today's date
       return moment().tz(TIMEZONE)
