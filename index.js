@@ -144,7 +144,7 @@ router.post('/message', async (ctx, next) => {
     })
 
     data.message['text'] = result
-  } else if (data.message.includes('도움')) {
+  } else if (message.includes('도움')) {
     let result = `내가 무엇을 할수 있는지 알려줄께!
 
 "오늘 급식 알려줘!": 오늘의 급식을 알려줍니다.
