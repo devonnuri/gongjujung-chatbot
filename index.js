@@ -63,9 +63,15 @@ const getDateFromMessage = message => {
 const loadMeal = () => {
   for (let i = -4; i <= 4; i++) {
     let date = getDateFromOffset(i)
-    Parser.getMeal(date).then(body => {
-      latestMeal[date] = body
-    })
+    let meal = []
+
+    Parser.getMeal(date, Parser.MealType.LUNCH).then(body => {
+      meal.push(body)
+    }).then(() => Parser.getMeal(date, Parser.MealType.DINNER).then(body => {
+      meal.push(body)
+    }))
+    
+    latestMeal[date] = meal
   }
   console.log('Meal has preloaded.')
 }
@@ -99,14 +105,18 @@ router.post('/message', async (ctx, next) => {
     message: {},
   }
 
-  if (message.includes('급식')) {
+  if (message.includes('급식') || message.includes('중식') || message.includes('석식')) {
     // TODO: 석식 추가해야지!
 
     let date = getDateFromMessage(message)
     let result = getMeal(date)
 
     if (result) {
-      data.message['text'] = date.format('LL') + '의 급식이야!\n\n' + result
+      if (message.includes('석식')) {
+        data.message['text'] = date.format('LL') + '의 석식이야!\n\n' + result[1]
+      } else {
+        data.message['text'] = date.format('LL') + '의 중식이야!\n\n' + result[0]
+      }
     } else {
       data.message['text'] = '안타깝게도 ' + date.format('LL') + '에는 급식이 없어 ㅠ'
     }
@@ -132,6 +142,17 @@ router.post('/message', async (ctx, next) => {
         }
       }
     })
+
+    data.message['text'] = result
+  } else if (data.message.includes('도움')) {
+    let result = `내가 무엇을 할수 있는지 알려줄께!
+
+"오늘 급식 알려줘!": 오늘의 급식을 알려줍니다.
+"내일 모레 급식 알려줘!": 내일 모레의 급식을 알려줍니다.
+"4월 12일 급식 알려줘!": 4월 12일 급식을 알려줍니다.
+
+"2학년 4반 내일 시간표 아냐?": 2학년 4반의 내일 시간표를 알려줍니다.
+"1학년 2반 글피 시간표 아냐?": 1학년 2반의 글피 시간표를 알려줍니다.`
 
     data.message['text'] = result
   } else {
