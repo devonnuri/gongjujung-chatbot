@@ -49,7 +49,9 @@ const getDateFromMessage = message => {
     return getDateFromOffset(offset)
   } else {
     let match = message.match(/([1-2]?[0-9])월 ?([1-3]?[0-9])일/)
-
+    
+    //TODO: Recognize Like "다음주 목요일"
+    
     // When the match isn't null
     if (match) {
       let [month, day] = [match[1] - 1, match[2]]
@@ -130,7 +132,7 @@ router.post('/message', async (ctx, next) => {
     let result = ""
     await Parser.getTodayTimeTable(grade, room, date).then(body => {
       if (body) {
-        result += '${grade}학년 ${room}반의 ${date.format('LL')}의 시간표야!\n\n'
+        result += `${grade}학년 ${room}반의 ${date.format('LL')}의 시간표야!\n\n`
         result += body
       } else {
         // Is it today?
