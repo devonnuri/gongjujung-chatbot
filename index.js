@@ -112,17 +112,20 @@ router.post('/message', async (ctx, next) => {
 
   if (message.includes('급식') || message.includes('중식') || message.includes('석식')) {
     let date = getDateFromMessage(message)
-
-    if (result) {
-      if (message.includes('석식')) {
-        let result = getMeal(date, Parser.MealType.DINNER)
-        data.message['text'] = date.format('LL') + '의 석식이야!\n\n' + result
-      } else {
-        let result = getMeal(date, Parser.MealType.LUNCH)
-        data.message['text'] = date.format('LL') + '의 중식이야!\n\n' + result
-      }
+    let mealType
+    
+    if(message.includes('석식')) {
+      mealType = Parser.MealType.DINNER
     } else {
-      data.message['text'] = '안타깝게도 ' + date.format('LL') + '에는 급식이 없어 ㅠ'
+      mealType = Parser.MealType.LUNCH
+    }
+    
+    let result = getMeal(date, mealType)
+    let mealTypeStr = ['조식', '중식', '석식'][mealType]
+    if (result) {
+      data.message['text'] = `${date.format('LL')}의 ${mealTypeStr}이야!\n\n${result}`
+    } else {
+      data.message['text'] = `안타깝게도 ${date.format('LL')}에는 ${mealTypeStr}이 없어 ㅠ`
     }
   } else if (message.includes('시간표')) {
     let date = getDateFromMessage(message)
