@@ -49,9 +49,9 @@ const getDateFromMessage = message => {
     return getDateFromOffset(offset)
   } else {
     let match = message.match(/([1-2]?[0-9])월 ?([1-3]?[0-9])일/)
-    
-    //TODO: Recognize Like "다음주 목요일"
-    
+
+    // TODO: Recognize Like "다음주 목요일"
+
     // When the match isn't null
     if (match) {
       let [month, day] = [match[1] - 1, match[2]]
@@ -84,10 +84,10 @@ const getMeal = (date, mealType = Parser.MealType.LUNCH) => {
       return latestMeal[key][mealType]
     }
   }
-  
+
   return Parser.getMeal(date, mealType).then(body => {
     return body
-  });
+  })
 }
 
 router.get('/', (ctx, next) => {
@@ -112,14 +112,8 @@ router.post('/message', async (ctx, next) => {
 
   if (message.includes('급식') || message.includes('중식') || message.includes('석식')) {
     let date = getDateFromMessage(message)
-    let mealType
-    
-    if(message.includes('석식')) {
-      mealType = Parser.MealType.DINNER
-    } else {
-      mealType = Parser.MealType.LUNCH
-    }
-    
+    let mealType = message.includes('석식') ? Parser.MealType.DINNER : Parser.MealType.LUNCH
+
     let result = getMeal(date, mealType)
     let mealTypeStr = ['조식', '중식', '석식'][mealType]
     if (result) {
@@ -136,14 +130,12 @@ router.post('/message', async (ctx, next) => {
       [grade, room] = [match[1], match[2]]
     }
 
-    let result = ""
+    let result = ''
     await Parser.getTodayTimeTable(grade, room, date).then(body => {
       if (body) {
-        result += `${grade}학년 ${room}반의 ${date.format('LL')}의 시간표야!\n\n`
-        result += body
+        result += `${grade}학년 ${room}반의 ${date.format('LL')}의 시간표야!\n\n${body}`
       } else {
-        // Is it today?
-        if (date.isSame(moment(), 'day')) {
+        if (date.isSame(moment().tz(TIMEZONE), 'day')) {
           result += '안타깝게도 오늘 수업은 없어.. 오늘은 놀아보자구!'
         } else {
           result += date.format('LL') + '에는 수업이 없어!'

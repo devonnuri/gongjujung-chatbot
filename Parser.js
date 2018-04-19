@@ -76,9 +76,9 @@ module.exports.test = async () => {
 }
 
 module.exports.MealType = {
-  BREAKFAST: 1,
-  LUNCH: 2,
-  DINNER: 3,
+  BREAKFAST: 0,
+  LUNCH: 1,
+  DINNER: 2,
 }
 
 module.exports.getMeal = async (date, mealType = this.MealType.LUNCH) => {
@@ -88,7 +88,7 @@ module.exports.getMeal = async (date, mealType = this.MealType.LUNCH) => {
     qs: {
       schulCode: 'N100000281',
       schulCrseScCode: '3',
-      schMmealScCode: mealType,
+      schMmealScCode: mealType + 1,
       schYmd: date.format('YYYYMMDD'),
     },
   }).then(body => {
