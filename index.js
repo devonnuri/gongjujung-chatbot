@@ -68,9 +68,9 @@ const loadMeal = () => {
     let meal = []
 
     Parser.getMeal(date, Parser.MealType.LUNCH).then(body => {
-      meal.push(body)
+      meal[Parser.MealType.LUNCH] = body
     }).then(() => Parser.getMeal(date, Parser.MealType.DINNER).then(body => {
-      meal.push(body)
+      meal[Parser.MealType.DINNER] = body
     }))
 
     latestMeal[date] = meal
@@ -78,13 +78,16 @@ const loadMeal = () => {
   console.log('Meal has preloaded.')
 }
 
-const getMeal = date => {
+const getMeal = (date, mealType = Parser.MealType.LUNCH) => {
   for (let key in latestMeal) {
     if (date.isSame(key, 'day')) {
-      return latestMeal[key]
+      return latestMeal[key][mealType]
     }
   }
-  return null
+  
+  return Parser.getMeal(date, mealType).then(body => {
+    return body
+  });
 }
 
 router.get('/', (ctx, next) => {
@@ -109,13 +112,14 @@ router.post('/message', async (ctx, next) => {
 
   if (message.includes('급식') || message.includes('중식') || message.includes('석식')) {
     let date = getDateFromMessage(message)
-    let result = getMeal(date)
 
     if (result) {
       if (message.includes('석식')) {
-        data.message['text'] = date.format('LL') + '의 석식이야!\n\n' + result[1]
+        let result = getMeal(date, Parser.MealType.DINNER)
+        data.message['text'] = date.format('LL') + '의 석식이야!\n\n' + result
       } else {
-        data.message['text'] = date.format('LL') + '의 중식이야!\n\n' + result[0]
+        let result = getMeal(date, Parser.MealType.LUNCH)
+        data.message['text'] = date.format('LL') + '의 중식이야!\n\n' + result
       }
     } else {
       data.message['text'] = '안타깝게도 ' + date.format('LL') + '에는 급식이 없어 ㅠ'
