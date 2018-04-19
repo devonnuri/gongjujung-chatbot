@@ -106,8 +106,6 @@ router.post('/message', async (ctx, next) => {
   }
 
   if (message.includes('급식') || message.includes('중식') || message.includes('석식')) {
-    // TODO: 석식 추가해야지!
-
     let date = getDateFromMessage(message)
     let result = getMeal(date)
 
@@ -129,9 +127,10 @@ router.post('/message', async (ctx, next) => {
       [grade, room] = [match[1], match[2]]
     }
 
-    let result = `${grade}학년 ${room}반의 ${date.format('LL')}의 시간표야!\n\n`
+    let result = ""
     await Parser.getTodayTimeTable(grade, room, date).then(body => {
       if (body) {
+        result += '${grade}학년 ${room}반의 ${date.format('LL')}의 시간표야!\n\n'
         result += body
       } else {
         // Is it today?
