@@ -93,6 +93,27 @@ const getMeal = (date, mealType = Parser.MealType.LUNCH) => {
   })
 }
 
+const printIP = () => {
+  let ifaces = require('os').networkInterfaces()
+
+  Object.keys(ifaces).forEach(ifname => {
+    let alias = 0
+
+    ifaces[ifname].forEach(iface => {
+      if (iface.family !== 'IPv4' || iface.internal !== false) {
+        return
+      }
+
+      if (alias >= 1) {
+        console.log('Network Interface found: ' + ifname + ':' + alias, iface.address)
+      } else {
+        console.log('Network Interface found: ' + ifname, iface.address)
+      }
+      alias++
+    })
+  })
+}
+
 router.get('/', (ctx, next) => {
   ctx.body = '<h1>You have the wrong number lul :(</h1>'
 })
@@ -167,7 +188,7 @@ router.post('/message', async (ctx, next) => {
 
 app.listen(PORT, () => {
   console.log(`Listening to port ${PORT}`)
-  console.log(`I am READY!!`)
+  printIP()
 
   new Promise(() => {
     if (DEVSERVER) {
@@ -175,10 +196,10 @@ app.listen(PORT, () => {
     }
   }).then(() => {
     loadMeal()
+    setInterval(() => loadMeal(), 300000)
+  }).then(() => {
+    console.log(`I am READY!!!`)
   })
-
-  // Prevent Sleeping & Fast Loading
-  setInterval(() => loadMeal(), 300000)
 })
 
 app
