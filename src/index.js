@@ -1,17 +1,20 @@
 const Koa = require('koa')
 const Router = require('koa-router')
 const bodyParser = require('koa-bodyparser')
+const moment = require('moment-timezone')
+const fs = require('fs')
 
 const Parser = require('./Parser')
-const moment = require('moment-timezone')
 
 const app = new Koa()
 const router = new Router()
 
 const PORT = process.env.PORT || 8080
+const DEVSERVER = fs.existsSync('.devserver')
+
 const TIMEZONE = 'Asia/Seoul'
 
-const KOREAN_DATE = {
+const koreanDate = {
   '그끄제': -3,
   '그저께': -2,
   '그제': -2,
@@ -34,9 +37,9 @@ const getDateFromOffset = offset => {
 }
 
 const getOffset = message => {
-  for (let key in KOREAN_DATE) {
+  for (let key in koreanDate) {
     if (message.includes(key)) {
-      return KOREAN_DATE[key]
+      return koreanDate[key]
     }
   }
 
@@ -166,7 +169,11 @@ app.listen(PORT, () => {
   console.log(`Listening to port ${PORT}`)
   console.log(`I am READY!!`)
 
-  Parser.test().then(() => {
+  new Promise(() => {
+    if (DEVSERVER) {
+      Parser.test()
+    }
+  }).then(() => {
     loadMeal()
   })
 

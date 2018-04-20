@@ -1,1 +1,1 @@
-web: node --harmony src/index.js
+worker: node --harmony src/index.js
