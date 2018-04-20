@@ -9,7 +9,7 @@ const Parser = require('./Parser')
 const app = new Koa()
 const router = new Router()
 
-const PORT = process.env.PORT || 8080
+const PORT = 8082
 const DEVSERVER = fs.existsSync('.devserver')
 
 const TIMEZONE = 'Asia/Seoul'
