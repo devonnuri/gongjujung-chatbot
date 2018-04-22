@@ -11,7 +11,6 @@ const router = new Router()
 
 const PORT = process.env.OPENSHIFT_NODEJS_PORT || 8080
 const IP_ADDRESS = process.env.OPENSHIFT_NODEJS_IP || 8080
-const DEVSERVER = fs.existsSync('.devserver')
 
 const TIMEZONE = 'Asia/Seoul'
 
@@ -91,27 +90,6 @@ const getMeal = (date, mealType = Parser.MealType.LUNCH) => {
 
   return Parser.getMeal(date, mealType).then(body => {
     return body
-  })
-}
-
-const printIP = () => {
-  let ifaces = require('os').networkInterfaces()
-
-  Object.keys(ifaces).forEach(ifname => {
-    let alias = 0
-
-    ifaces[ifname].forEach(iface => {
-      if (iface.family !== 'IPv4' || iface.internal !== false) {
-        return
-      }
-
-      if (alias >= 1) {
-        console.log('Network Interface found: ' + ifname + ':' + alias, iface.address)
-      } else {
-        console.log('Network Interface found: ' + ifname, iface.address)
-      }
-      alias++
-    })
   })
 }
 
