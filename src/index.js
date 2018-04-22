@@ -2,7 +2,6 @@ const Koa = require('koa')
 const Router = require('koa-router')
 const bodyParser = require('koa-bodyparser')
 const moment = require('moment-timezone')
-const fs = require('fs')
 
 const Parser = require('./Parser')
 
