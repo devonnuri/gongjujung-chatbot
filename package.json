@@ -22,5 +22,8 @@
     "heroku",
     "koa"
   ],
-  "license": "MIT"
+  "license": "MIT",
+  "scripts": {
+    "start": "node src/index.js"
+  }
 }
