@@ -9,7 +9,8 @@ const Parser = require('./Parser')
 const app = new Koa()
 const router = new Router()
 
-const PORT = 8082
+const PORT = process.env.OPENSHIFT_NODEJS_PORT || 8080
+const IP_ADDRESS = process.env.OPENSHIFT_NODEJS_IP || 8080
 const DEVSERVER = fs.existsSync('.devserver')
 
 const TIMEZONE = 'Asia/Seoul'
@@ -186,7 +187,7 @@ router.post('/message', async (ctx, next) => {
   ctx.body = data
 })
 
-app.listen(PORT, () => {
+app.listen(PORT, IP_ADDRESS, () => {
   console.log(`Listening to port ${PORT}`)
   printIP()
 
