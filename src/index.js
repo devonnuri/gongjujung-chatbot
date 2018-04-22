@@ -66,7 +66,7 @@ const getDateFromMessage = message => {
   }
 }
 
-const loadMeal = () => {
+const loadMeal = async () => {
   for (let i = -4; i <= 4; i++) {
     let date = getDateFromOffset(i)
     let meal = []
@@ -189,18 +189,10 @@ router.post('/message', async (ctx, next) => {
 
 app.listen(PORT, IP_ADDRESS, () => {
   console.log(`Listening to port ${PORT}`)
-  printIP()
-
-  new Promise(() => {
-    if (DEVSERVER) {
-      Parser.test()
-    }
-  }).then(() => {
-    loadMeal()
-    setInterval(() => loadMeal(), 300000)
-  }).then(() => {
-    console.log(`I am READY!!!`)
+  loadMeal().then(() => {
+    console.log('NOW LOADING!!')
   })
+  setInterval(() => loadMeal(), 300000)
 })
 
 app

@@ -50,31 +50,6 @@ const getTimeTable = async (grade, room) => {
   })
 }
 
-module.exports.test = async () => {
-  return new Promise((resolve, reject) => {
-    process.stdout.write('Testing School Meal... ')
-    resolve()
-  }).then(() => request({
-    method: 'GET',
-    url: 'http://stu.cne.go.kr/sts_sci_md01_001.do',
-    resolveWithFullResponse: true,
-  }).then(response => {
-    if (response.statusCode === 200) {
-      process.stdout.write('Succeed.\n')
-    } else {
-      process.stdout.write('Failed. (Status Code "' + response.statusCode + '")\n')
-    }
-  }).catch(error => {
-    process.stdout.write('Failed. (' + error + ')\n')
-  })).then(() => {
-    process.stdout.write('Testing Comcigan(Getting Time Table)... ')
-  }).then(() => getTimeTable(1, 1)).then(() => {
-    process.stdout.write('Succeed.\n')
-  }).catch(error => {
-    process.stdout.write('Failed. (' + error + ')\n')
-  })
-}
-
 module.exports.MealType = {
   BREAKFAST: 0,
   LUNCH: 1,
