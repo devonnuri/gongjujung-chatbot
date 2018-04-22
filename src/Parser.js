@@ -20,13 +20,14 @@ const getTimeTable = async (grade, room) => {
       method: 'GET',
       url: `http://112.186.146.96:4080/${url}?sc=41837&nal=1&s=0`
     }).then(body => {
-      body = body.split('\n')[0]
+      const raw = body
+      body = raw.split('\n')[0]
       let data
       try {
         data = JSON.parse(body)
       } catch (err) {
         console.error(err)
-        console.log('Response Body:\n' + body)
+        console.log('Response Body:\n' + raw)
         return
       }
 
