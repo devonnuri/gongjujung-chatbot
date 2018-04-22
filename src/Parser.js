@@ -21,7 +21,13 @@ const getTimeTable = async (grade, room) => {
       url: `http://112.186.146.96:4080/${url}?sc=41837&nal=1&s=0`
     }).then(body => {
       body = body.split('\n')[0]
-      const data = JSON.parse(body)
+      try {
+        const data = JSON.parse(body)
+      } catch (err) {
+        console.error(err)
+        console.log('Response Body:\n' + body)
+      }
+      
       const weeklySchedule = data.학급시간표[grade][room]
       weeklySchedule.shift(1)
 
