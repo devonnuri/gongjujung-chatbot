@@ -131,28 +131,29 @@ router.post('/message', async (ctx, next) => {
       data.message['text'] = `안타깝게도 ${date.format('LL')}에는 ${mealTypeStr}이 없어 ㅠ`
     }
   } else if (message.includes('시간표')) {
-    let date = getDateFromMessage(message)
-    let match = message.match(/([1-3])학년 ?([1-9])반/)
-    let [grade, room] = [2, 4]
+    // let date = getDateFromMessage(message)
+    // let match = message.match(/([1-3])학년 ?([1-9])반/)
+    // let [grade, room] = [2, 4]
 
-    if (match) {
-      [grade, room] = [match[1], match[2]]
-    }
+    // if (match) {
+    //   [grade, room] = [match[1], match[2]]
+    // }
 
-    let result = ''
-    await Parser.getTodayTimeTable(grade, room, date).then(body => {
-      if (body) {
-        result += `${grade}학년 ${room}반의 ${date.format('LL')}의 시간표야!\n\n${body}`
-      } else {
-        if (date.isSame(moment().tz(TIMEZONE), 'day')) {
-          result += '안타깝게도 오늘 수업은 없어.. 오늘은 놀아보자구!'
-        } else {
-          result += date.format('LL') + '에는 수업이 없어!'
-        }
-      }
-    })
+    // let result = ''
+    // await Parser.getTodayTimeTable(grade, room, date).then(body => {
+    //   if (body) {
+    //     result += `${grade}학년 ${room}반의 ${date.format('LL')}의 시간표야!\n\n${body}`
+    //   } else {
+    //     if (date.isSame(moment().tz(TIMEZONE), 'day')) {
+    //       result += '안타깝게도 오늘 수업은 없어.. 오늘은 놀아보자구!'
+    //     } else {
+    //       result += date.format('LL') + '에는 수업이 없어!'
+    //     }
+    //   }
+    // })
 
-    data.message['text'] = result
+    // data.message['text'] = result
+    data.message['text'] = '현재 시간표는 지원하지 않습니다. 나중에 지원토록 만들겠습니다 :)'
   } else if (message.includes('도움')) {
     let result = `내가 무엇을 할수 있는지 알려줄께!
 
