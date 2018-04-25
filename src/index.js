@@ -13,6 +13,8 @@ const IP_ADDRESS = process.env.OPENSHIFT_NODEJS_IP || 8080
 
 const TIMEZONE = 'Asia/Seoul'
 
+let preloadedCount = 0
+
 const koreanDate = {
   '그끄제': -3,
   '그저께': -2,
@@ -77,7 +79,7 @@ const loadMeal = async () => {
 
     latestMeal[date] = meal
   }
-  console.log('Meal has preloaded.')
+  console.log(`Meal has preloaded. (#${++preloadedCount})`)
 }
 
 const getMeal = (date, mealType = Parser.MealType.LUNCH) => {
@@ -110,6 +112,11 @@ router.post('/message', async (ctx, next) => {
 
   let data = {
     message: {},
+  }
+
+  if (message === undefined) {
+    console.log(param)
+    return
   }
 
   if (message.includes('급식') || message.includes('중식') || message.includes('석식')) {
