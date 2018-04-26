@@ -1,64 +1,6 @@
 const cheerio = require('cheerio')
 const request = require('request-promise')
 
-const getTimeTable = async (grade, room) => {
-  /*
-   * Payload:
-   * 1. Get temporary request url in /st page (look like _h123345)
-   * 2. Using (1), Get JSON Response
-   * 3. Parse (2) into object
-   */
-
-  return request({
-    method: 'GET',
-    url: 'http://112.186.146.96:4080/st#',
-  }).then(body => {
-    // temprorary request url
-    let url = body.match(/window\.localStorage;.*var [A-z0-9ㄱ-ㅎ가-힣$_]+\s*=\s*'([\w_-]+)'/)[1]
-
-    return request({
-      method: 'GET',
-      url: `http://112.186.146.96:4080/${url}?sc=41837&nal=1&s=0`
-    }).then(body => {
-      const raw = body
-      body = raw.split('\n')[0]
-      let data
-      try {
-        data = JSON.parse(body)
-      } catch (err) {
-        console.error(err)
-        console.log('Response Body:\n' + raw)
-        return
-      }
-
-      const weeklySchedule = data.학급시간표[grade][room]
-      weeklySchedule.shift(1)
-
-      for (let day = 0; day < 5; day++) {
-        const schedule = weeklySchedule[day]
-        for (let period = 0, len = schedule.length; period < len; period += 1) {
-          const subject = schedule[period]
-          if (subject > 100) {
-            weeklySchedule[day][period] = {
-              subject: data['긴과목명'][subject % 100] || null,
-              subjectAlias: data['과목명'][subject % 100] || null,
-              teacher: data['성명'][Math.floor(subject / 100)] || null
-            }
-          } else {
-            weeklySchedule[day][period] = null
-          }
-        }
-
-        weeklySchedule[day].shift()
-      }
-
-      weeklySchedule.pop()
-
-      return weeklySchedule
-    })
-  })
-}
-
 module.exports.MealType = {
   BREAKFAST: 0,
   LUNCH: 1,
@@ -86,19 +28,33 @@ module.exports.getMeal = async (date, mealType = this.MealType.LUNCH) => {
   })
 }
 
-module.exports.getTodayTimeTable = async (grade, room, date) => {
-  const schedule = await getTimeTable(grade, room)
-  let day = date.day()
+module.exports.BusStop = {
+  GONGJU_MS: 286014002,
+}
 
-  if (day >= 1 && day <= 5) {
-    let result = ''
-    for (let [index, subject] of schedule[day - 1].entries()) {
-      if (!subject) continue
-
-      result += `${index + 1}교시: ${subject.subject}(${subject.teacher})\n`
+module.exports.getBusInfo = async (busStopCode) => {
+  // Gongju Middle School - 286014002
+  return request({
+    method: 'POST',
+    url: 'http://bis.gongju.go.kr/inq/searchBusStopRoute.do',
+    form: {
+      busStopId: busStopCode,
+    },
+  }).then(body => {
+    const json = JSON.parse(body)
+    let result = []
+    for (let bus of json.busStopRouteList) {
+      if(bus.route_name === '') continue;
+      
+      const busName = bus.route_name
+      const lastStop = bus.last_stop_name
+      const busInfo = {
+        1: `${bus.provide_type}에 출발`,
+        2: `${bus.provide_type} 분 후 도착`,
+        3: `잠시 후 도착`,
+      }[bus.provide_code] || '정보 없음'
+      result.push({ busName, lastStop, busInfo })
     }
     return result
-  } else {
-    return null
-  }
+  })
 }

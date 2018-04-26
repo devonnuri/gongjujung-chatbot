@@ -131,36 +131,24 @@ router.post('/message', async (ctx, next) => {
       data.message['text'] = `안타깝게도 ${date.format('LL')}에는 ${mealTypeStr}이 없어 ㅠ`
     }
   } else if (message.includes('시간표')) {
-    // let date = getDateFromMessage(message)
-    // let match = message.match(/([1-3])학년 ?([1-9])반/)
-    // let [grade, room] = [2, 4]
-
-    // if (match) {
-    //   [grade, room] = [match[1], match[2]]
-    // }
-
-    // let result = ''
-    // await Parser.getTodayTimeTable(grade, room, date).then(body => {
-    //   if (body) {
-    //     result += `${grade}학년 ${room}반의 ${date.format('LL')}의 시간표야!\n\n${body}`
-    //   } else {
-    //     if (date.isSame(moment().tz(TIMEZONE), 'day')) {
-    //       result += '안타깝게도 오늘 수업은 없어.. 오늘은 놀아보자구!'
-    //     } else {
-    //       result += date.format('LL') + '에는 수업이 없어!'
-    //     }
-    //   }
-    // })
-
-    // data.message['text'] = result
     data.message['text'] = '현재 시간표는 지원하지 않습니다. 나중에 지원토록 만들겠습니다 :)'
+  } else if (message.includes('버스')) {
+    let bus = await Parser.getBusInfo(Parser.BusStop.GONGJU_MS)
+    let result = ''
+
+    result += `현재 "공주중학교" 정류장의 버스 정보입니다.\n\n`
+    bus.forEach(((busName, lastStop, busInfo) => {
+      result += `${busName}번: ${lastStop}\n${busInfo}\n\n`
+    })
+
+    data.message['text'] = result.trim()
   } else if (message.includes('도움')) {
     let result = `내가 무엇을 할수 있는지 알려줄께!
 
 "오늘 급식 알려줘!": 오늘의 급식을 알려줍니다.
 "내일 모레 급식 알려줘!": 내일 모레의 급식을 알려줍니다.
 "4월 12일 급식 알려줘!": 4월 12일 급식을 알려줍니다.
-
+`
     data.message['text'] = result
   } else {
     data.message['text'] = '뭐라는지 모르겠어 ㅠㅠ\n기능 제안이나 버그 제보는 항상 받고 있으니 언제나 알려달라고!'
