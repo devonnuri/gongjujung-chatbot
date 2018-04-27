@@ -11,6 +11,8 @@ const router = new Router()
 const PORT = process.env.OPENSHIFT_NODEJS_PORT || 8080
 const IP_ADDRESS = process.env.OPENSHIFT_NODEJS_IP || 8080
 
+const LIVESERVER = !require('fs').existsSync('.devserver')
+
 const TIMEZONE = 'Asia/Seoul'
 
 let preloadedCount = 0
@@ -108,7 +110,12 @@ router.get('/keyboard', (ctx, next) => {
 
 router.post('/message', async (ctx, next) => {
   let param = ctx.request.body
-  let message = JSON.parse(param[0])['content']
+  let message
+  if (LIVESERVER) {
+    message = JSON.parse(param[0])['content']
+  } else {
+    message = param.content
+  }
 
   let data = {
     message: {},
