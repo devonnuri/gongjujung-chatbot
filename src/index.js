@@ -137,9 +137,9 @@ router.post('/message', async (ctx, next) => {
     let result = ''
 
     result += `현재 "공주중학교" 정류장의 버스 정보입니다.\n\n`
-    bus.forEach(((busName, lastStop, busInfo) => {
-      result += `${busName}번: ${lastStop}\n${busInfo}\n\n`
-    })
+    bus.forEach(((value) => {
+      result += `${value.busName}번: ${value.lastStop}\n${value.busInfo}\n\n`
+    }))
 
     data.message['text'] = result.trim()
   } else if (message.includes('도움')) {
