@@ -122,6 +122,8 @@ router.post('/message', async (ctx, next) => {
 
       data.message['text'] = result.trim()
     }
+  } else {
+    data.message['text'] = '뭐라는지 모르겠어! ><'
   }
 
   ctx.body = data
