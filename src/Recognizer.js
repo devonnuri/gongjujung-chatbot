@@ -78,6 +78,10 @@ module.exports.Type = {
   BUS_BY_BUS: 'BUS_BY_BUS',
 }
 
+/**
+ * Return type of message
+ * @param {string} message
+ */
 module.exports.getType = message => {
   return classifyMessage(message, keywordMap)
 }
@@ -108,8 +112,9 @@ module.exports.recognize = async message => {
     let busStopList = []
     const keywords = removedMsg.trim().split(' ')
     for (const keyword of keywords) {
-      await Parser.searchBus(keyword).then(async (data) => {
-        busStopList.push(...data.busStopList)
+      if (!keyword) continue
+      await Parser.searchBusStop(keyword).then(async (data) => {
+        busStopList.push(...data)
       })
     }
     return { type, busStopList, mayBusStop: keywords[0] }

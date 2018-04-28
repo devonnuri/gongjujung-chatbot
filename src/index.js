@@ -50,6 +50,19 @@ const getMeal = (date, mealType = Parser.MealType.LUNCH) => {
   })
 }
 
+const formatBusInfo = async (busStopId, busStopName) => {
+  const bus = await Parser.getBusInfo(busStopId)
+  let result = ''
+
+  result += `현재 "${busStopName}" 정류장의 버스 정보입니다.\n`
+  bus.forEach(({busName, lastStop, busInfo}) => {
+    result += `${busName}번: ${lastStop}: ${busInfo}\n`
+  })
+  result += '\n'
+
+  return result
+}
+
 router.get('/', (ctx, next) => {
   ctx.body = '<h1>You have the wrong number lul :(</h1>'
 })
@@ -92,19 +105,22 @@ router.post('/message', async (ctx, next) => {
   } else if (recognized.type === Recognizer.Type.TIMETABLE) {
     data.message['text'] = '현재 시간표는 지원하지 않습니다. 나중에 지원토록 만들겠습니다 :)'
   } else if (recognized.type === Recognizer.Type.BUS_BY_STOP) {
-    if (recognized.busStopList.length < 1) {
+    if (recognized.busStopList.length < 1 && recognized.mayBusStop) {
       data.message['text'] = `"${recognized.mayBusStop}" 정류장이 검색되지 않았습니다.`
     } else {
-      const busStop = recognized.busStopList[0]
-      const bus = await Parser.getBusInfo(busStop.stop_id)
-      let result = ''
+      const busStops = recognized.busStopList
+      let result
 
-      result += `현재 "${busStop.stop_name}" 정류장의 버스 정보입니다.\n\n`
-      bus.forEach(({busName, lastStop, busInfo}) => {
-        result += `${busName}번: ${lastStop}\n${busInfo}\n\n`
-      })
+      if (busStops.length > 0) {
+        result = `${busStops.length}개의 검색결과가 발견되었습니다.\n\n`
+        for (const busStop of busStops) {
+          result += await formatBusInfo(busStop.stop_id, busStop.stop_name)
+        }
+      } else {
+        result = await formatBusInfo('286014002', '공주중학교(산성시장방면)')
+      }
 
-      data.message['text'] = result
+      data.message['text'] = result.trim()
     }
   }
 

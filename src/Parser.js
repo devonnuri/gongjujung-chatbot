@@ -60,7 +60,7 @@ module.exports.getBusInfo = async (busStopCode) => {
   }).catch(() => {})
 }
 
-module.exports.searchBus = async (keyword) => {
+module.exports.searchBusStop = async (keyword) => {
   return request({
     method: 'POST',
     url: 'http://bis.gongju.go.kr/inq/searchBusStop.do',
@@ -68,6 +68,6 @@ module.exports.searchBus = async (keyword) => {
       busStop: keyword,
     },
   }).then(async (body) => {
-    return JSON.parse(body)
+    return JSON.parse(body).busStopList
   })
 }
