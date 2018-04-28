@@ -63,13 +63,12 @@ const getDateFromMessage = message => {
 const classifyMessage = (message, map) => {
   for (const key in map) {
     for (const keyword of map[key]) {
-      console.log(message, keyword)
       if (message.includes(keyword)) {
-        return key
+        return { type: key, removedMsg: message.replace(keyword, '') }
       }
     }
   }
-  return null
+  return { type: null, removedMsg: null }
 }
 
 module.exports.Type = {
@@ -83,17 +82,21 @@ module.exports.getType = message => {
   return classifyMessage(message, keywordMap)
 }
 
-module.exports.recognize = message => {
-  const type = this.getType(message) || 'NULL'
+/**
+ * Return recognized type and information of message
+ * @param {string} message
+ */
+module.exports.recognize = async message => {
+  const { type, removedMsg } = this.getType(message)
 
   if (type === this.Type.MEAL) {
     const mealType = classifyMessage(message, {
       0: ['조식', '아침'],
       1: ['점심', '중식'],
       2: ['저녁', '석식'],
-    }) || Parser.MealType.LUNCH
+    }).type || Parser.MealType.LUNCH
 
-    const date = getDateFromMessage(message)
+    const date = getDateFromMessage(removedMsg)
 
     return {
       type,
@@ -102,9 +105,14 @@ module.exports.recognize = message => {
       date,
     }
   } else if (type === this.Type.BUS_BY_STOP) {
-    return {
-      type
+    let busStopList = []
+    const keywords = removedMsg.trim().split(' ')
+    for (const keyword of keywords) {
+      await Parser.searchBus(keyword).then(async (data) => {
+        busStopList.push(...data.busStopList)
+      })
     }
+    return { type, busStopList, mayBusStop: keywords[0] }
   }
   return { type }
 }

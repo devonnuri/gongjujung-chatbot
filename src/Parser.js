@@ -25,7 +25,7 @@ module.exports.getMeal = async (date, mealType = this.MealType.LUNCH) => {
       .replace(/<[a-zA-Z]+\/?>/gi, '') // Remove Tag Except br Tag
       .replace(/([0-9]+\.)+/gi, '') // Remove Allergy Info
       .trim()
-  })
+  }).catch(() => {})
 }
 
 module.exports.BusStop = {
@@ -57,7 +57,7 @@ module.exports.getBusInfo = async (busStopCode) => {
       result.push({ busName, lastStop, busInfo })
     }
     return result
-  })
+  }).catch(() => {})
 }
 
 module.exports.searchBus = async (keyword) => {
@@ -67,7 +67,7 @@ module.exports.searchBus = async (keyword) => {
     form: {
       busStop: keyword,
     },
-  }).then(body => {
+  }).then(async (body) => {
     return JSON.parse(body)
   })
 }

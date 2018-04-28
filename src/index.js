@@ -80,7 +80,7 @@ router.post('/message', async (ctx, next) => {
     return
   }
 
-  const recognized = Recognizer.recognize(message)
+  const recognized = await Recognizer.recognize(message)
 
   if (recognized.type === Recognizer.Type.MEAL) {
     if (getMeal(recognized.date)) {
@@ -92,7 +92,20 @@ router.post('/message', async (ctx, next) => {
   } else if (recognized.type === Recognizer.Type.TIMETABLE) {
     data.message['text'] = '현재 시간표는 지원하지 않습니다. 나중에 지원토록 만들겠습니다 :)'
   } else if (recognized.type === Recognizer.Type.BUS_BY_STOP) {
-    data.message['text'] = '버스도 아직;;'
+    if (recognized.busStopList.length < 1) {
+      data.message['text'] = `"${recognized.mayBusStop}" 정류장이 검색되지 않았습니다.`
+    } else {
+      const busStop = recognized.busStopList[0]
+      const bus = await Parser.getBusInfo(busStop.stop_id)
+      let result = ''
+
+      result += `현재 "${busStop.stop_name}" 정류장의 버스 정보입니다.\n\n`
+      bus.forEach(({busName, lastStop, busInfo}) => {
+        result += `${busName}번: ${lastStop}\n${busInfo}\n\n`
+      })
+
+      data.message['text'] = result
+    }
   }
 
   ctx.body = data
