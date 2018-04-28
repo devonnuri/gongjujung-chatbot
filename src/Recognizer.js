@@ -1,0 +1,98 @@
+const moment = require('moment-timezone')
+
+const Parser = require('./Parser')
+
+require('dotenv').config()
+
+const TIMEZONE = process.env.TIMEZONE
+
+moment.locale('ko')
+
+const keywordMap = {
+  MEAL: ['급식', '조식', '아침', '중식', '석식', '저녁', '밥'],
+  TIMETABLE: ['시간표'],
+  BUS: ['버스']
+}
+
+const koreanOffset = {
+  '그끄제': -3,
+  '그저께': -2,
+  '그제': -2,
+  '어제': -1,
+  '오늘': 0,
+  '모레': 2,
+  '내일': 1,
+  '글피': 3,
+  '그글피': 4,
+}
+
+const getOffset = message => {
+  for (let key in koreanOffset) {
+    if (message.includes(key)) {
+      return koreanOffset[key]
+    }
+  }
+
+  return null
+}
+
+const getDateFromOffset = offset => {
+  return moment().add(offset, 'day').tz(TIMEZONE)
+}
+
+const getDateFromMessage = message => {
+  let offset = getOffset(message)
+  if (offset !== null) {
+    return getDateFromOffset(offset)
+  } else {
+    let match = message.match(/([1-2]?[0-9])월 ?([1-3]?[0-9])일/)
+
+    // TODO: Recognize Like "다음주 목요일"
+
+    // When the match isn't null
+    if (match) {
+      let [month, day] = [match[1] - 1, match[2]]
+      return moment({month, day}).tz(TIMEZONE)
+    } else { // if nothing has matched, return today's date
+      return moment().tz(TIMEZONE)
+    }
+  }
+}
+
+const classifyMessage = (message, map) => {
+  for (const key in map) {
+    for (const keyword of map[key]) {
+      console.log(message, keyword)
+      if (message.includes(keyword)) {
+        return key
+      }
+    }
+  }
+  return null
+}
+
+module.exports.recognizeType = message => {
+  return classifyMessage(message, keywordMap)
+}
+
+module.exports.recognize = message => {
+  const type = this.recognizeType(message) || 'NULL'
+
+  if (type === 'MEAL') {
+    const mealType = classifyMessage(message, {
+      0: ['조식', '아침'],
+      1: ['점심', '중식'],
+      2: ['저녁', '석식'],
+    }) || Parser.MealType.LUNCH
+
+    const date = getDateFromMessage(message)
+
+    return {
+      type,
+      mealType,
+      mealTypeKorean: ['조식', '중식', '석식'][mealType],
+      date,
+    }
+  }
+  return { type }
+}
