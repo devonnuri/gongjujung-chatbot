@@ -11,7 +11,8 @@ moment.locale('ko')
 const keywordMap = {
   MEAL: ['급식', '조식', '아침', '중식', '석식', '저녁', '밥'],
   TIMETABLE: ['시간표'],
-  BUS: ['버스']
+  BUS_BY_STOP: ['버스'],
+  BUS_BY_BUS: ['번 버스', '번버스']
 }
 
 const koreanOffset = {
@@ -71,14 +72,21 @@ const classifyMessage = (message, map) => {
   return null
 }
 
-module.exports.recognizeType = message => {
+module.exports.Type = {
+  MEAL: 'MEAL',
+  TIMETABLE: 'TIMETABLE',
+  BUS_BY_STOP: 'BUS_BY_STOP',
+  BUS_BY_BUS: 'BUS_BY_BUS',
+}
+
+module.exports.getType = message => {
   return classifyMessage(message, keywordMap)
 }
 
 module.exports.recognize = message => {
-  const type = this.recognizeType(message) || 'NULL'
+  const type = this.getType(message) || 'NULL'
 
-  if (type === 'MEAL') {
+  if (type === this.Type.MEAL) {
     const mealType = classifyMessage(message, {
       0: ['조식', '아침'],
       1: ['점심', '중식'],
@@ -92,6 +100,10 @@ module.exports.recognize = message => {
       mealType,
       mealTypeKorean: ['조식', '중식', '석식'][mealType],
       date,
+    }
+  } else if (type === this.Type.BUS_BY_STOP) {
+    return {
+      type
     }
   }
   return { type }

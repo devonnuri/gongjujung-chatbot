@@ -82,13 +82,17 @@ router.post('/message', async (ctx, next) => {
 
   const recognized = Recognizer.recognize(message)
 
-  if (recognized.type === 'MEAL') {
+  if (recognized.type === Recognizer.Type.MEAL) {
     if (getMeal(recognized.date)) {
       data.message['text'] = `${recognized.date.format('LL')}의 ${recognized.mealTypeKorean}이야!\n\n`
       data.message['text'] += getMeal(recognized.date)
     } else {
-      data.message['text'] = `안타깝게도 ${recognized.date.format('LL')}에는 ${recognized.mealTypeKorean}이 없어 ㅠㅠ\n\n`
+      data.message['text'] = `안타깝게도 ${recognized.date.format('LL')}에는 ${recognized.mealTypeKorean}이 없어 ㅠㅠ`
     }
+  } else if (recognized.type === Recognizer.Type.TIMETABLE) {
+    data.message['text'] = '현재 시간표는 지원하지 않습니다. 나중에 지원토록 만들겠습니다 :)'
+  } else if (recognized.type === Recognizer.Type.BUS_BY_STOP) {
+    data.message['text'] = '버스도 아직;;'
   }
 
   ctx.body = data

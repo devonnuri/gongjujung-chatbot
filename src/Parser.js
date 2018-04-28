@@ -59,3 +59,15 @@ module.exports.getBusInfo = async (busStopCode) => {
     return result
   })
 }
+
+module.exports.searchBus = async (keyword) => {
+  return request({
+    method: 'POST',
+    url: 'http://bis.gongju.go.kr/inq/searchBusStop.do',
+    form: {
+      busStop: keyword,
+    },
+  }).then(body => {
+    return JSON.parse(body)
+  })
+}
