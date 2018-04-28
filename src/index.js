@@ -3,7 +3,8 @@ const Router = require('koa-router')
 const bodyParser = require('koa-bodyparser')
 const moment = require('moment-timezone')
 
-const Parser = require('./Parser')
+const Meal = require('./parser/MealParser')
+const Bus = require('./parser/BusParser')
 const Recognizer = require('./Recognizer')
 
 const app = new Koa()
@@ -27,10 +28,10 @@ const loadMeal = async () => {
     let date = moment().add(i, 'day').tz(TIMEZONE)
     let meal = []
 
-    Parser.getMeal(date, Parser.MealType.LUNCH).then(body => {
-      meal[Parser.MealType.LUNCH] = body
-    }).then(() => Parser.getMeal(date, Parser.MealType.DINNER).then(body => {
-      meal[Parser.MealType.DINNER] = body
+    Meal.getMeal(date, Meal.MealType.LUNCH).then(body => {
+      meal[Meal.MealType.LUNCH] = body
+    }).then(() => Meal.getMeal(date, Meal.MealType.DINNER).then(body => {
+      meal[Meal.MealType.DINNER] = body
     }))
 
     latestMeal[date] = meal
@@ -38,20 +39,20 @@ const loadMeal = async () => {
   console.log(`Meal has preloaded. (#${++preloadedCount})`)
 }
 
-const getMeal = (date, mealType = Parser.MealType.LUNCH) => {
+const getMeal = (date, mealType = Meal.MealType.LUNCH) => {
   for (let key in latestMeal) {
     if (date.isSame(key, 'day')) {
       return latestMeal[key][mealType]
     }
   }
 
-  return Parser.getMeal(date, mealType).then(body => {
+  return Meal.getMeal(date, mealType).then(body => {
     return body
   })
 }
 
 const formatBusInfo = async (busStopId, busStopName) => {
-  const bus = await Parser.getBusInfo(busStopId)
+  const bus = await Bus.getBusInfo(busStopId)
   let result = ''
 
   result += `현재 "${busStopName}" 정류장의 버스 정보입니다.\n`

@@ -1,6 +1,7 @@
 const moment = require('moment-timezone')
 
-const Parser = require('./Parser')
+const Meal = require('./parser/MealParser')
+const Bus = require('./parser/BusParser')
 
 require('dotenv').config()
 
@@ -98,7 +99,7 @@ module.exports.recognize = async message => {
       0: ['조식', '아침'],
       1: ['점심', '중식'],
       2: ['저녁', '석식'],
-    }).type || Parser.MealType.LUNCH
+    }).type || Meal.MealType.LUNCH
 
     const date = getDateFromMessage(removedMsg)
 
@@ -113,7 +114,7 @@ module.exports.recognize = async message => {
     const keywords = removedMsg.trim().split(' ')
     for (const keyword of keywords) {
       if (!keyword) continue
-      await Parser.searchBusStop(keyword).then(async (data) => {
+      await Bus.searchBusStop(keyword).then(async (data) => {
         busStopList.push(...data)
       })
     }
