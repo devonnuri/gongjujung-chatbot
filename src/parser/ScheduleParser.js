@@ -4,21 +4,19 @@ import cheerio from 'cheerio'
 import request from 'request-promise'
 import moment from 'moment-timezone'
 
-module.exports.MealType = {
-  BREAKFAST: 0,
-  LUNCH: 1,
-  DINNER: 2,
-}
-
-module.exports.getMeal = async (date: moment, mealType: number = module.exports.MealType.LUNCH) => {
+/**
+ * Get Monthly Schedule with year and month from date
+ * @param {moment} date
+ */
+module.exports.getMonthlySchedule = async (date: moment) => {
   return request({
     method: 'GET',
-    url: 'http://stu.cne.go.kr/sts_sci_md01_001.do',
+    url: 'http://stu.cne.go.kr/sts_sci_sf01_001.do',
     qs: {
       schulCode: 'N100000281',
       schulCrseScCode: '3',
-      schMmealScCode: mealType + 1,
-      schYmd: date.format('YYYYMMDD'),
+      ay: date.year(),
+      mm: date.month()
     },
   }).then(body => {
     const $ = cheerio.load(body, { decodeEntities: false })

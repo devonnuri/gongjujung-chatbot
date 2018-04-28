@@ -26,6 +26,15 @@
   ],
   "license": "MIT",
   "scripts": {
-    "start": "node src/index.js"
+    "start": "nodemon --exec npm run babel-node -- ./src/index.js",
+    "babel-node": "babel-node --presets=flow",
+    "flow": "flow"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.6.1",
+    "babel-preset-flow": "^6.23.0",
+    "flow-bin": "^0.71.0",
+    "nodemon": "^1.17.3"
   }
 }
