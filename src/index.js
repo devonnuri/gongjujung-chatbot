@@ -1,11 +1,12 @@
-const Koa = require('koa')
-const Router = require('koa-router')
-const bodyParser = require('koa-bodyparser')
-const moment = require('moment-timezone')
+import Koa from 'koa'
+import Router from 'koa-router'
+import bodyParser from 'koa-bodyparser'
+import moment from 'moment-timezone'
 
-const Meal = require('./parser/MealParser')
-const Bus = require('./parser/BusParser')
-const Recognizer = require('./Recognizer')
+import { MealType, fetchMeal } from './parser/MealParser'
+import { getBusInfo } from './parser/BusParser'
+
+import { MessageType, recognize } from './Recognizer'
 
 const app = new Koa()
 const router = new Router()
@@ -23,15 +24,15 @@ let latestMeal = {}
 
 app.use(bodyParser())
 
-const loadMeal = async () => {
+const loadMeal = async (): void => {
   for (let i = -4; i <= 4; i++) {
     let date = moment().add(i, 'day').tz(TIMEZONE)
     let meal = []
 
-    Meal.getMeal(date, Meal.MealType.LUNCH).then(body => {
-      meal[Meal.MealType.LUNCH] = body
-    }).then(() => Meal.getMeal(date, Meal.MealType.DINNER).then(body => {
-      meal[Meal.MealType.DINNER] = body
+    fetchMeal(date, MealType.LUNCH).then(body => {
+      meal[MealType.LUNCH] = body
+    }).then(() => fetchMeal(date, MealType.DINNER).then(body => {
+      meal[MealType.DINNER] = body
     }))
 
     latestMeal[date] = meal
@@ -39,20 +40,20 @@ const loadMeal = async () => {
   console.log(`Meal has preloaded. (#${++preloadedCount})`)
 }
 
-const getMeal = (date, mealType = Meal.MealType.LUNCH) => {
+const getMeal = (date: moment, mealType = MealType.LUNCH): string => {
   for (let key in latestMeal) {
     if (date.isSame(key, 'day')) {
       return latestMeal[key][mealType]
     }
   }
 
-  return Meal.getMeal(date, mealType).then(body => {
+  return fetchMeal(date, mealType).then(body => {
     return body
   })
 }
 
-const formatBusInfo = async (busStopId, busStopName) => {
-  const bus = await Bus.getBusInfo(busStopId)
+const formatBusInfo = async (busStopId: string, busStopName: string): string => {
+  const bus = await getBusInfo(busStopId)
   let result = ''
 
   result += `현재 "${busStopName}" 정류장의 버스 정보입니다.\n`
@@ -86,7 +87,7 @@ router.post('/message', async (ctx, next) => {
   }
 
   let data = {
-    message: {},
+    message: {}
   }
 
   if (!message) {
@@ -94,23 +95,23 @@ router.post('/message', async (ctx, next) => {
     return
   }
 
-  const recognized = await Recognizer.recognize(message)
+  const recognized: {type: string} = await recognize(message)
 
-  if (recognized.type === Recognizer.Type.MEAL) {
+  if (recognized.type === MessageType.MEAL) {
     if (getMeal(recognized.date)) {
       data.message['text'] = `${recognized.date.format('LL')}의 ${recognized.mealTypeKorean}이야!\n\n`
       data.message['text'] += getMeal(recognized.date)
     } else {
       data.message['text'] = `안타깝게도 ${recognized.date.format('LL')}에는 ${recognized.mealTypeKorean}이 없어 ㅠㅠ`
     }
-  } else if (recognized.type === Recognizer.Type.TIMETABLE) {
+  } else if (recognized.type === MessageType.TIMETABLE) {
     data.message['text'] = '현재 시간표는 지원하지 않습니다. 나중에 지원토록 만들겠습니다 :)'
-  } else if (recognized.type === Recognizer.Type.BUS_BY_STOP) {
+  } else if (recognized.type === MessageType.BUS_BY_STOP) {
     if (recognized.busStopList.length < 1 && recognized.mayBusStop) {
       data.message['text'] = `"${recognized.mayBusStop}" 정류장이 검색되지 않았습니다.`
     } else {
-      const busStops = recognized.busStopList
-      let result
+      const busStops: {} = recognized.busStopList
+      let result: string
 
       if (busStops.length > 0) {
         result = `${busStops.length}개의 검색결과가 발견되었습니다.\n\n`

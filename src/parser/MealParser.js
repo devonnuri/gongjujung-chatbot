@@ -4,13 +4,13 @@ import cheerio from 'cheerio'
 import request from 'request-promise'
 import moment from 'moment-timezone'
 
-module.exports.MealType = {
+export const MealType = {
   BREAKFAST: 0,
   LUNCH: 1,
   DINNER: 2,
 }
 
-module.exports.getMeal = async (date: moment, mealType: number = module.exports.MealType.LUNCH) => {
+export const fetchMeal = async (date: moment, mealType: number = module.exports.MealType.LUNCH) => {
   return request({
     method: 'GET',
     url: 'http://stu.cne.go.kr/sts_sci_md01_001.do',

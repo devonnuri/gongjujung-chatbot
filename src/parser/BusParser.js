@@ -1,11 +1,10 @@
-const cheerio = require('cheerio')
 const request = require('request-promise')
 
-module.exports.BusStop = {
+export const BusStop = {
   GONGJU_MS: '286014002',
 }
 
-module.exports.getBusInfo = async (busStopCode) => {
+export const getBusInfo = async (busStopCode) => {
   return request({
     method: 'POST',
     url: 'http://bis.gongju.go.kr/inq/searchBusStopRoute.do',
@@ -33,7 +32,7 @@ module.exports.getBusInfo = async (busStopCode) => {
   }).catch(() => {})
 }
 
-module.exports.searchBusStop = async (keyword) => {
+export const searchBusStop = async (keyword) => {
   return request({
     method: 'POST',
     url: 'http://bis.gongju.go.kr/inq/searchBusStop.do',

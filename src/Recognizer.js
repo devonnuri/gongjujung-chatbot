@@ -72,29 +72,21 @@ const classifyMessage = (message, map) => {
   return { type: null, removedMsg: null }
 }
 
-module.exports.Type = {
+export const MessageType = {
   MEAL: 'MEAL',
   TIMETABLE: 'TIMETABLE',
   BUS_BY_STOP: 'BUS_BY_STOP',
   BUS_BY_BUS: 'BUS_BY_BUS',
 }
 
-/**
- * Return type of message
- * @param {string} message
- */
-module.exports.getType = message => {
+export const getType = (message: string): module.exports.Type => {
   return classifyMessage(message, keywordMap)
 }
 
-/**
- * Return recognized type and information of message
- * @param {string} message
- */
-module.exports.recognize = async message => {
-  const { type, removedMsg } = this.getType(message)
+export const recognize = async message => {
+  const { type, removedMsg } = getType(message)
 
-  if (type === this.Type.MEAL) {
+  if (type === MessageType.MEAL) {
     const mealType = classifyMessage(message, {
       0: ['조식', '아침'],
       1: ['점심', '중식'],
@@ -109,7 +101,7 @@ module.exports.recognize = async message => {
       mealTypeKorean: ['조식', '중식', '석식'][mealType],
       date,
     }
-  } else if (type === this.Type.BUS_BY_STOP) {
+  } else if (type === MessageType.BUS_BY_STOP) {
     let busStopList = []
     const keywords = removedMsg.trim().split(' ')
     for (const keyword of keywords) {
