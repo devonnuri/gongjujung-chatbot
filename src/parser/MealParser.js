@@ -10,7 +10,7 @@ export const MealType = {
   DINNER: 2,
 }
 
-export const fetchMeal = async (date: moment, mealType: number = module.exports.MealType.LUNCH) => {
+export const fetchMeal = async (date: moment, mealType: number = MealType.LUNCH) => {
   return request({
     method: 'GET',
     url: 'http://stu.cne.go.kr/sts_sci_md01_001.do',
