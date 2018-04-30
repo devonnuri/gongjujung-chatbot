@@ -66,7 +66,7 @@ const formatBusInfo = async (busStopId: string, busStopName: string): string => 
 }
 
 router.get('/', (ctx, next) => {
-  ctx.body = '<h1>You have the wrong number lul :(</h1>'
+  ctx.body = `<h1>You have the wrong number lul :(</h1><!--But Here is a flag!! FLAG{${process.env.flag}}-->`
 })
 
 router.get('/keyboard', (ctx, next) => {
