@@ -1,10 +1,11 @@
 const request = require('request-promise')
 
-export const BusStop = {
-  GONGJU_MS: '286014002',
+export const RouteDirection = {
+  START_END: 1,
+  END_START: 2,
 }
 
-export const getBusInfo = async (busStopCode) => {
+export const getBusInfo = async (busStopCode: string): Array<{ busName: string, lastStop: string, busInfo: string }> => {
   return request({
     method: 'POST',
     url: 'http://bis.gongju.go.kr/inq/searchBusStopRoute.do',
@@ -32,7 +33,7 @@ export const getBusInfo = async (busStopCode) => {
   }).catch(() => {})
 }
 
-export const searchBusStop = async (keyword) => {
+export const searchBusStop = async (keyword: string): {} => {
   return request({
     method: 'POST',
     url: 'http://bis.gongju.go.kr/inq/searchBusStop.do',
@@ -41,5 +42,32 @@ export const searchBusStop = async (keyword) => {
     },
   }).then(async (body) => {
     return JSON.parse(body).busStopList
+  })
+}
+
+export const searchBusRoute = async (busRoute: string, routeDirection: RouteDirection = RouteDirection.START_END): {} => {
+  return request({
+    method: 'POST',
+    url: 'http://bis.gongju.go.kr/inq/searchBusRoute.do',
+    form: {
+      busRoute,
+    },
+  }).then(async (body: string) => {
+    const data = JSON.parse(body).busRouteDetailList
+    for (const route of data) {
+      if (route.route_id === routeDirection) {
+        return route
+      }
+    }
+  }).then(async (route: string) => {
+    return request({
+      method: 'POST',
+      url: 'http://bis.gongju.go.kr/inq/searchBusRealLocationDetail.do',
+      form: {
+        busRouteId: route,
+      }
+    })
+  }).then(async (body) => {
+    return JSON.parse(body).busRealLocList
   })
 }

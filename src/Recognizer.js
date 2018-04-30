@@ -1,7 +1,7 @@
-const moment = require('moment-timezone')
+import moment from 'moment-timezone'
 
-const Meal = require('./parser/MealParser')
-const Bus = require('./parser/BusParser')
+import { MealType } from './parser/MealParser'
+import { searchBusRoute, searchBusStop } from './parser/BusParser'
 
 require('dotenv').config()
 
@@ -10,10 +10,10 @@ const TIMEZONE = process.env.TIMEZONE
 moment.locale('ko')
 
 const keywordMap = {
-  MEAL: ['급식', '조식', '아침', '중식', '석식', '저녁', '밥'],
-  TIMETABLE: ['시간표'],
-  BUS_BY_STOP: ['버스'],
-  BUS_BY_BUS: ['번 버스', '번버스']
+  MEAL: [/급식/, /조식/, /아침/, /중식/, /석식/, /저녁/, /밥/],
+  TIMETABLE: [/시간표/],
+  BUS_BY_BUS: [/([0-9]{3})번.*(기점|종점)?발?.*버스/],
+  BUS_BY_STOP: [/버스/],
 }
 
 const koreanOffset = {
@@ -28,72 +28,72 @@ const koreanOffset = {
   '그글피': 4,
 }
 
-const getOffset = message => {
+const getOffset = (message: string): ?number => {
   for (let key in koreanOffset) {
     if (message.includes(key)) {
       return koreanOffset[key]
     }
   }
-
   return null
 }
 
-const getDateFromOffset = offset => {
+const getDateFromOffset = (offset: number): moment => {
   return moment().add(offset, 'day').tz(TIMEZONE)
 }
 
-const getDateFromMessage = message => {
-  let offset = getOffset(message)
+const getDateFromMessage = (message: string): moment => {
+  let offset: number = getOffset(message)
   if (offset !== null) {
     return getDateFromOffset(offset)
-  } else {
-    let match = message.match(/([1-2]?[0-9])월 ?([1-3]?[0-9])일/)
+  }
 
-    // TODO: Recognize Like "다음주 목요일"
+  let match = message.match(/([1-2]?[0-9])월 ?([1-3]?[0-9])일/)
 
-    // When the match isn't null
-    if (match) {
-      let [month, day] = [match[1] - 1, match[2]]
-      return moment({month, day}).tz(TIMEZONE)
-    } else { // if nothing has matched, return today's date
-      return moment().tz(TIMEZONE)
-    }
+  // TODO: Recognize Like "다음주 목요일"
+
+  // When the match isn't null
+  if (match) {
+    let [month: number, day: number] = [match[1] - 1, match[2]]
+    return moment({month, day}).tz(TIMEZONE)
+  } else { // if nothing has matched, return today's date
+    return moment().tz(TIMEZONE)
   }
 }
 
-const classifyMessage = (message, map) => {
+const classifyMessage = (message: string, map: {}): {type: ?string, removedMsg: ?string, match: ?Array} => {
   for (const key in map) {
-    for (const keyword of map[key]) {
-      if (message.includes(keyword)) {
-        return { type: key, removedMsg: message.replace(keyword, '') }
+    for (const regex of map[key]) {
+      const match = message.match(regex)
+      if (match) {
+        return { type: key, removedMsg: message.replace(regex, ''), match }
       }
     }
   }
-  return { type: null, removedMsg: null }
+  return { type: null, removedMsg: null, match: null }
 }
 
 export const MessageType = {
   MEAL: 'MEAL',
   TIMETABLE: 'TIMETABLE',
-  BUS_BY_STOP: 'BUS_BY_STOP',
   BUS_BY_BUS: 'BUS_BY_BUS',
+  BUS_BY_STOP: 'BUS_BY_STOP',
 }
 
-export const getType = (message: string): module.exports.Type => {
+export const getType = (message: string): MessageType => {
   return classifyMessage(message, keywordMap)
 }
 
-export const recognize = async message => {
-  const { type, removedMsg } = getType(message)
+export const recognize = async (message: string): { type: MessageType } => {
+  const { type, removedMsg, match } = getType(message)
 
   if (type === MessageType.MEAL) {
-    const mealType = classifyMessage(message, {
-      0: ['조식', '아침'],
-      1: ['점심', '중식'],
-      2: ['저녁', '석식'],
-    }).type || Meal.MealType.LUNCH
+    const mealType: MealType = classifyMessage(message, {
+      [MealType.BREAKFAST]: ['조식', '아침'],
+      [MealType.LUNCH]: ['점심', '중식'],
+      [MealType.DINNER]: ['저녁', '석식'],
+    }).type || MealType.LUNCH
 
-    const date = getDateFromMessage(removedMsg)
+    const date: moment = getDateFromMessage(removedMsg)
 
     return {
       type,
@@ -101,16 +101,20 @@ export const recognize = async message => {
       mealTypeKorean: ['조식', '중식', '석식'][mealType],
       date,
     }
+  } else if (type === MessageType.BUS_BY_BUS) {
+    await searchBusRoute(match[1], match[2]).then(async (data) => {
+      console.log(JSON.stringify(data, null, 4))
+    })
   } else if (type === MessageType.BUS_BY_STOP) {
     let busStopList = []
     const keywords = removedMsg.trim().split(' ')
     for (const keyword of keywords) {
       if (!keyword) continue
-      await Bus.searchBusStop(keyword).then(async (data) => {
+      await searchBusStop(keyword).then(async (data) => {
         busStopList.push(...data)
       })
     }
-    return { type, busStopList, mayBusStop: keywords[0] }
+    return { type, busStopList, input: { busStop: keywords[0] } }
   }
   return { type }
 }

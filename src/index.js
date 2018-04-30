@@ -26,7 +26,7 @@ app.use(bodyParser())
 
 const loadMeal = async (): void => {
   for (let i = -4; i <= 4; i++) {
-    let date = moment().add(i, 'day').tz(TIMEZONE)
+    let date = moment().add(i, 'days').tz(TIMEZONE)
     let meal = []
 
     fetchMeal(date, MealType.LUNCH).then(body => {
@@ -40,7 +40,7 @@ const loadMeal = async (): void => {
   console.log(`Meal has preloaded. (#${++preloadedCount})`)
 }
 
-const getMeal = (date: moment, mealType = MealType.LUNCH): string => {
+const getMeal = async (date: moment, mealType: MealType = MealType.LUNCH): string => {
   for (let key in latestMeal) {
     if (date.isSame(key, 'day')) {
       return latestMeal[key][mealType]
@@ -78,8 +78,8 @@ router.get('/keyboard', (ctx, next) => {
 })
 
 router.post('/message', async (ctx, next) => {
-  let param = ctx.request.body
-  let message
+  let param: string = ctx.request.body
+  let message: string
   if (LIVESERVER) {
     message = JSON.parse(param[0])['content']
   } else {
@@ -95,20 +95,20 @@ router.post('/message', async (ctx, next) => {
     return
   }
 
-  const recognized: {type: string} = await recognize(message)
+  const recognized: { type: string } = await recognize(message)
 
   if (recognized.type === MessageType.MEAL) {
-    if (getMeal(recognized.date)) {
-      data.message['text'] = `${recognized.date.format('LL')}의 ${recognized.mealTypeKorean}이야!\n\n`
-      data.message['text'] += getMeal(recognized.date)
+    const meal = await getMeal(recognized.date, recognized.mealType)
+    if (meal) {
+      data.message['text'] = `${recognized.date.format('LL')}의 ${recognized.mealTypeKorean}이야!\n\n${meal}`
     } else {
       data.message['text'] = `안타깝게도 ${recognized.date.format('LL')}에는 ${recognized.mealTypeKorean}이 없어 ㅠㅠ`
     }
   } else if (recognized.type === MessageType.TIMETABLE) {
     data.message['text'] = '현재 시간표는 지원하지 않습니다. 나중에 지원토록 만들겠습니다 :)'
   } else if (recognized.type === MessageType.BUS_BY_STOP) {
-    if (recognized.busStopList.length < 1 && recognized.mayBusStop) {
-      data.message['text'] = `"${recognized.mayBusStop}" 정류장이 검색되지 않았습니다.`
+    if (recognized.busStopList.length < 1 && recognized.input.busStop) {
+      data.message['text'] = `"${recognized.input.busStop}" 정류장이 검색되지 않았습니다.`
     } else {
       const busStops: {} = recognized.busStopList
       let result: string
