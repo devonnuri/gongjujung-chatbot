@@ -67,9 +67,9 @@ const formatBusInfo = async (busStopId: string, busStopName: string): string => 
 
 router.get('/', (ctx, next) => {
   if (process.env.flag) {
-    ctx.body = `<h1>Ring..Ring..</h1>`
-  } else {
     ctx.body = `<h1>You have the wrong number lul :(</h1><!--But Here is a flag!! FLAG{${process.env.flag}}-->`
+  } else {
+    ctx.body = `<h1>Ring..Ring..</h1>`
   }
 })
 
