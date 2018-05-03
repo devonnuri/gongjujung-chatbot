@@ -30,3 +30,4 @@ node_modules
 sqls.sql
 .devserver
 .prettierignore
+.vscode

@@ -1,7 +1,7 @@
 import moment from 'moment-timezone'
 
 import { MealType } from './parser/MealParser'
-import { searchBusRoute, searchBusStop } from './parser/BusParser'
+import { searchBus, searchBusStop, RouteDirection } from './parser/BusParser'
 
 require('dotenv').config()
 
@@ -12,7 +12,7 @@ moment.locale('ko')
 const keywordMap = {
   MEAL: [/급식/, /조식/, /아침/, /중식/, /석식/, /저녁/, /밥/],
   TIMETABLE: [/시간표/],
-  BUS_BY_BUS: [/([0-9]{3})번.*(기점|종점)?발?.*버스/],
+  BUS_BY_BUS: [/([0-9]{3})번\s*(기점|종점)?발?.*버스/],
   BUS_BY_STOP: [/버스/],
 }
 
@@ -102,15 +102,16 @@ export const recognize = async (message: string): { type: MessageType } => {
       date,
     }
   } else if (type === MessageType.BUS_BY_BUS) {
-    await searchBusRoute(match[1], match[2]).then(async (data) => {
-      console.log(JSON.stringify(data, null, 4))
-    })
+    const direction = match[2] === '종점' ? RouteDirection.END_START : RouteDirection.START_END
+    let busList = await searchBus(match[1], direction)
+    busList = busList.map(route => route.plate_no + ', ' + route.stop_name)
+    return { type, busList, input: { bus: match[1], direction: match[2] } }
   } else if (type === MessageType.BUS_BY_STOP) {
     let busStopList = []
     const keywords = removedMsg.trim().split(' ')
     for (const keyword of keywords) {
       if (!keyword) continue
-      await searchBusStop(keyword).then(async (data) => {
+      await searchBusStop(keyword).then((data) => {
         busStopList.push(...data)
       })
     }

@@ -110,6 +110,8 @@ router.post('/message', async (ctx, next) => {
     }
   } else if (recognized.type === MessageType.TIMETABLE) {
     data.message['text'] = '현재 시간표는 지원하지 않습니다. 나중에 지원토록 만들겠습니다 :)'
+  } else if (recognized.type === MessageType.BUS_BY_BUS) {
+    data.message['text'] = recognized.busList
   } else if (recognized.type === MessageType.BUS_BY_STOP) {
     if (recognized.busStopList.length < 1 && recognized.input.busStop) {
       data.message['text'] = `"${recognized.input.busStop}" 정류장이 검색되지 않았습니다.`
@@ -118,8 +120,8 @@ router.post('/message', async (ctx, next) => {
       let result: string
 
       if (busStops.length > 0) {
-        result = `${busStops.length}개의 검색결과가 발견되었습니다.\n\n`
-        for (const busStop of busStops) {
+        result = `${busStops.length}개의 검색결과가 발견되었습니다. (최대 4개까지 표시)\n\n`
+        for (const busStop of busStops.slice(0, 4)) {
           result += await formatBusInfo(busStop.stop_id, busStop.stop_name)
         }
       } else {
