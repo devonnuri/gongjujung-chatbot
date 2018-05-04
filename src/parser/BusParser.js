@@ -63,7 +63,7 @@ export const searchBus = async (busRoute: string, routeDirection: RouteDirection
           busRouteId: route.route_id,
         },
       })
-      result.push(...JSON.parse(json).busRealLocList)
+      result.push(...JSON.parse(json).busRealLocList.filter(bus => bus.route_direction === routeDirection))
     }
     return result
   })

@@ -99,7 +99,7 @@ router.post('/message', async (ctx, next) => {
     return
   }
 
-  const recognized: { type: string } = await recognize(message)
+  const recognized: { type: string, input: ?{} } = await recognize(message)
 
   if (recognized.type === MessageType.MEAL) {
     const meal = await getMeal(recognized.date, recognized.mealType)
@@ -111,17 +111,27 @@ router.post('/message', async (ctx, next) => {
   } else if (recognized.type === MessageType.TIMETABLE) {
     data.message['text'] = '현재 시간표는 지원하지 않습니다. 나중에 지원토록 만들겠습니다 :)'
   } else if (recognized.type === MessageType.BUS_BY_BUS) {
-    data.message['text'] = recognized.busList
+    const busList = recognized.busList
+
+    if (recognized.busList.length < 1) {
+      data.message['text'] = `"${recognized.input.bus}" 버스가 검색되지 않았습니다.`
+    } else {
+      let result = `${busList.length}개의 "${recognized.input.bus}" 버스가 검색되었습니다.`
+      for (const bus of busList) {
+        result += bus.stop_name + '\n'
+      }
+      data.message['text'] = result
+    }
   } else if (recognized.type === MessageType.BUS_BY_STOP) {
     if (recognized.busStopList.length < 1 && recognized.input.busStop) {
       data.message['text'] = `"${recognized.input.busStop}" 정류장이 검색되지 않았습니다.`
     } else {
-      const busStops: {} = recognized.busStopList
-      let result: string
+      const busStopList = recognized.busStopList
+      let result = ''
 
-      if (busStops.length > 0) {
-        result = `${busStops.length}개의 검색결과가 발견되었습니다. (최대 4개까지 표시)\n\n`
-        for (const busStop of busStops.slice(0, 4)) {
+      if (busStopList.length > 0) {
+        result = `${busStopList.length}개의 검색결과가 발견되었습니다. (최대 4개까지 표시)\n\n`
+        for (const busStop of busStopList.slice(0, 4)) {
           result += await formatBusInfo(busStop.stop_id, busStop.stop_name)
         }
       } else {
