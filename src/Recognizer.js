@@ -104,7 +104,13 @@ export const recognize = async (message: string): { type: MessageType } => {
   } else if (type === MessageType.BUS_BY_BUS) {
     const direction = match[2] === '종점' ? RouteDirection.END_START : RouteDirection.START_END
     const busList = await searchBus(match[1], direction)
-    return { type, busList, input: { bus: match[1], direction: match[2] } }
+    return {
+      type,
+      busList,
+      direction,
+      directionKorean: ['기점발', '종점발'][direction - 1],
+      input: { bus: match[1], direction: match[2] },
+    }
   } else if (type === MessageType.BUS_BY_STOP) {
     let busStopList = []
     const keywords = removedMsg.trim().split(' ')

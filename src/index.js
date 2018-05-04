@@ -114,9 +114,9 @@ router.post('/message', async (ctx, next) => {
     const busList = recognized.busList
 
     if (recognized.busList.length < 1) {
-      data.message['text'] = `"${recognized.input.bus}" 버스가 검색되지 않았습니다.`
+      data.message['text'] = `${recognized.input.bus}번 버스가 검색되지 않았습니다.`
     } else {
-      let result = `${busList.length}개의 "${recognized.input.bus}" 버스가 검색되었습니다.`
+      let result = `${busList.length}개의 ${recognized.input.bus}번(${recognized.directionKorean}) 버스가 검색되었습니다.\n`
       for (const bus of busList) {
         result += bus.stop_name + '\n'
       }
