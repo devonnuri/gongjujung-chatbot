@@ -124,13 +124,10 @@ router.post('/message', async (ctx, next) => {
         markers.push([bus.lat, bus.lng])
       }
 
-      const center = markers.reduce((prev, cur) => [prev[0] + cur[0] / markers.length, prev[1] + cur[1] / markers.length])
-
       data.message['text'] = result
 
       data.message['photo'] = {
-        url: `http://maps.google.com/maps/api/staticmap?` +
-        `center=${center.join(',')}&zoom=14&size=700x700&maptype=roadmap` +
+        url: `http://maps.google.com/maps/api/staticmap?size=700x700&maptype=roadmap` +
         `&markers=${markers.map(arr => arr[0] + ',' + arr[1]).join('&markers=')}`,
         width: 500,
         height: 500,
