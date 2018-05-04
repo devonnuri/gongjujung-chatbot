@@ -138,11 +138,13 @@ router.post('/message', async (ctx, next) => {
         result = await formatBusInfo('286014002', '공주중학교(산성시장방면)')
       }
 
-      data.message['text'] = result.trim()
+      data.message['text'] = result
     }
   } else {
     data.message['text'] = '뭐라는지 모르겠어! ><'
   }
+
+  data.message['text'] = data.message['text'].trim()
 
   ctx.body = data
 })
