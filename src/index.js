@@ -120,7 +120,7 @@ router.post('/message', async (ctx, next) => {
       for (const bus of busList) {
         result += bus.stop_name + '\n'
       }
-      data.message['text'] = result
+      data.message['text'] = result.trim()
     }
   } else if (recognized.type === MessageType.BUS_BY_STOP) {
     if (recognized.busStopList.length < 1 && recognized.input.busStop) {
