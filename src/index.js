@@ -117,10 +117,24 @@ router.post('/message', async (ctx, next) => {
       data.message['text'] = `${recognized.input.bus}번 버스가 검색되지 않았습니다.`
     } else {
       let result = `${busList.length}개의 ${recognized.input.bus}번(${recognized.directionKorean}) 버스가 검색되었습니다.\n`
+      let markers = []
+
       for (const bus of busList) {
         result += bus.stop_name + '\n'
+        markers.push([bus.lat, bus.lng])
       }
-      data.message['text'] = result.trim()
+
+      const center = markers.reduce((prev, cur) => [prev[0] + cur[0] / markers.length, prev[1] + cur[1] / markers.length])
+
+      data.message['text'] = result
+
+      data.message['photo'] = {
+        url: `http://maps.google.com/maps/api/staticmap?` +
+        `center=${center.join(',')}&zoom=14&size=700x700&maptype=roadmap` +
+        `&markers=${markers.map(arr => arr[0] + ',' + arr[1]).join('&markers=')}`,
+        width: 500,
+        height: 500,
+      }
     }
   } else if (recognized.type === MessageType.BUS_BY_STOP) {
     if (recognized.busStopList.length < 1 && recognized.input.busStop) {
