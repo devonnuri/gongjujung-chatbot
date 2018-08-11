@@ -1,3 +1,5 @@
+require('babel-polyfill')
+
 import Koa from 'koa'
 import Router from 'koa-router'
 import bodyParser from 'koa-bodyparser'

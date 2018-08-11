@@ -7,6 +7,7 @@
     "email": "devonnuri@gmail.com"
   },
   "dependencies": {
+    "babel-polyfill": "^6.26.0",
     "cheerio": "^1.0.0-rc.2",
     "co-body": "^1.2.0",
     "dotenv": "^5.0.1",
