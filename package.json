@@ -26,7 +26,9 @@
   ],
   "license": "MIT",
   "scripts": {
-    "start": "nodemon --exec npm run babel-node -- ./src/index.js",
+    "start": "node lib/index.js",
+    "dev": "nodemon --exec npm run babel-node -- ./src/index.js",
+    "build": "rm -rf lib/* && babel src --out-dir lib",
     "babel-node": "babel-node --presets=flow",
     "flow": "flow"
   },

@@ -83,12 +83,7 @@ router.get('/keyboard', (ctx, next) => {
 
 router.post('/message', async (ctx, next) => {
   let param: string = ctx.request.body
-  let message: string
-  if (LIVESERVER) {
-    message = JSON.parse(param[0])['content']
-  } else {
-    message = param.content
-  }
+  let message = JSON.parse(param[0])['content']
 
   let data = {
     message: {}
